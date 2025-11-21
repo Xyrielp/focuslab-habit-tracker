@@ -245,6 +245,34 @@ export default function HabitTracker() {
     <div className="habit-app">
       <PWAInstaller />
       
+      {/* Onboarding for new users */}
+      {habits.length === 0 && todos.length === 0 && (
+        <div className="onboarding-overlay">
+          <div className="onboarding-content">
+            <div className="onboarding-icon">🎯</div>
+            <h2>Welcome to FocusLab!</h2>
+            <p>Start building better habits and managing tasks effectively</p>
+            <div className="onboarding-steps">
+              <div className="step">
+                <span className="step-number">1</span>
+                <span>Add your first habit</span>
+              </div>
+              <div className="step">
+                <span className="step-number">2</span>
+                <span>Track daily progress</span>
+              </div>
+              <div className="step">
+                <span className="step-number">3</span>
+                <span>Build lasting streaks</span>
+              </div>
+            </div>
+            <button className="onboarding-cta" onClick={() => setShowAddHabit(true)}>
+              Create Your First Habit
+            </button>
+          </div>
+        </div>
+      )}
+      
       {/* Enhanced Header with Overall Progress */}
       <div className="app-header">
         <div className="header-content">
@@ -345,64 +373,84 @@ export default function HabitTracker() {
             <span className="section-count">{habits.length}</span>
           </div>
           
-          <div className="habits-grid">
-            {habits.map((habit, index) => {
-              const today = formatDate(new Date())
-              const isCompleted = habitData[index]?.[today] || false
-              const stats = getHabitStats(index, 7)
-              
-              return (
-                <div 
-                  key={habit.id} 
-                  className={`habit-card modern ${isCompleted ? 'completed' : ''}`}
-                  onClick={() => toggleHabit(index, new Date())}
-                >
-                  <div className="card-header">
-                    <div className="habit-icon" style={{ backgroundColor: habit.color }}>
-                      {habit.emoji}
-                    </div>
-                    <div className="habit-info">
-                      <h3>{habit.name}</h3>
-                      <div className="habit-meta">
-                        <span className="streak">🔥 {habit.streak} days</span>
-                        <span className="completion">{stats.percentage}% this week</span>
-                      </div>
-                    </div>
-                    <div className="completion-check">
-                      <div className={`check-circle ${isCompleted ? 'checked' : ''}`}>
-                        {isCompleted && <span className="check-mark">✓</span>}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="progress-section">
-                    <div className="progress-bar-container">
-                      <div className="progress-bar-bg">
-                        <div 
-                          className="progress-bar-fill animated" 
-                          style={{ 
-                            width: `${stats.percentage}%`,
-                            backgroundColor: habit.color 
-                          }}
-                        ></div>
-                      </div>
-                      <span className="progress-text">{stats.completed}/{stats.total}</span>
-                    </div>
-                  </div>
-                  
-                  <button 
-                    className="delete-btn"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      deleteHabit(index)
+          {habits.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">📅</div>
+              <h3>No habits yet</h3>
+              <p>Create your first habit to start building better routines</p>
+              <button className="empty-cta" onClick={() => setShowAddHabit(true)}>
+                <span className="cta-icon">+</span>
+                Add Your First Habit
+              </button>
+            </div>
+          ) : (
+            <div className="habits-grid">
+              {habits.map((habit, index) => {
+                const today = formatDate(new Date())
+                const isCompleted = habitData[index]?.[today] || false
+                const stats = getHabitStats(index, 7)
+                
+                return (
+                  <div 
+                    key={habit.id} 
+                    className={`habit-card modern ${isCompleted ? 'completed' : ''}`}
+                    onClick={() => {
+                      toggleHabit(index, new Date())
+                      if (!isCompleted) {
+                        const card = document.querySelector(`[data-habit-id="${habit.id}"]`)
+                        card?.classList.add('success-pulse')
+                        setTimeout(() => card?.classList.remove('success-pulse'), 600)
+                      }
                     }}
+                    data-habit-id={habit.id}
                   >
-                    <span>×</span>
-                  </button>
-                </div>
-              )
-            })}
-          </div>
+                    <div className="card-header">
+                      <div className="habit-icon" style={{ backgroundColor: habit.color }}>
+                        {habit.emoji}
+                      </div>
+                      <div className="habit-info">
+                        <h3>{habit.name}</h3>
+                        <div className="habit-meta">
+                          <span className="streak">🔥 {habit.streak} days</span>
+                          <span className="completion">{stats.percentage}% this week</span>
+                        </div>
+                      </div>
+                      <div className="completion-check">
+                        <div className={`check-circle ${isCompleted ? 'checked' : ''}`}>
+                          {isCompleted && <span className="check-mark">✓</span>}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="progress-section">
+                      <div className="progress-bar-container">
+                        <div className="progress-bar-bg">
+                          <div 
+                            className="progress-bar-fill animated" 
+                            style={{ 
+                              width: `${stats.percentage}%`,
+                              backgroundColor: habit.color 
+                            }}
+                          ></div>
+                        </div>
+                        <span className="progress-text">{stats.completed}/{stats.total}</span>
+                      </div>
+                    </div>
+                    
+                    <button 
+                      className="delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        deleteHabit(index)
+                      }}
+                    >
+                      <span>×</span>
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -414,39 +462,59 @@ export default function HabitTracker() {
             <span className="section-count">{todos.length}</span>
           </div>
           
-          <div className="todos-grid">
-            {todos.map((todo) => (
-              <div 
-                key={todo.id} 
-                className={`todo-card ${todo.completed ? 'completed' : ''}`}
-              >
-                <div className="todo-content" onClick={() => toggleTodo(todo.id)}>
-                  <div className="todo-check">
-                    <div className={`check-circle ${todo.completed ? 'checked' : ''}`}>
-                      {todo.completed && <span className="check-mark">✓</span>}
-                    </div>
-                  </div>
-                  <div className="todo-info">
-                    <p className="todo-text">{todo.text}</p>
-                    <div className="todo-meta">
-                      <span className="priority" style={{ color: getPriorityColor(todo.priority) }}>
-                        {getPriorityIcon(todo.priority)} {todo.priority}
-                      </span>
-                      <span className="created-date">
-                        {new Date(todo.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <button 
-                  className="delete-btn"
-                  onClick={() => deleteTodo(todo.id)}
+          {todos.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">📝</div>
+              <h3>No tasks yet</h3>
+              <p>Add tasks to stay organized and productive</p>
+              <button className="empty-cta" onClick={() => setShowAddTodo(true)}>
+                <span className="cta-icon">+</span>
+                Add Your First Task
+              </button>
+            </div>
+          ) : (
+            <div className="todos-grid">
+              {todos.map((todo) => (
+                <div 
+                  key={todo.id} 
+                  className={`todo-card ${todo.completed ? 'completed' : ''}`}
+                  data-todo-id={todo.id}
                 >
-                  <span>×</span>
-                </button>
-              </div>
-            ))}
-          </div>
+                  <div className="todo-content" onClick={() => {
+                    toggleTodo(todo.id)
+                    if (!todo.completed) {
+                      const card = document.querySelector(`[data-todo-id="${todo.id}"]`)
+                      card?.classList.add('success-pulse')
+                      setTimeout(() => card?.classList.remove('success-pulse'), 600)
+                    }
+                  }}>
+                    <div className="todo-check">
+                      <div className={`check-circle ${todo.completed ? 'checked' : ''}`}>
+                        {todo.completed && <span className="check-mark">✓</span>}
+                      </div>
+                    </div>
+                    <div className="todo-info">
+                      <p className="todo-text">{todo.text}</p>
+                      <div className="todo-meta">
+                        <span className="priority" style={{ color: getPriorityColor(todo.priority) }}>
+                          {getPriorityIcon(todo.priority)} {todo.priority}
+                        </span>
+                        <span className="created-date">
+                          {new Date(todo.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <button 
+                    className="delete-btn"
+                    onClick={() => deleteTodo(todo.id)}
+                  >
+                    <span>×</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -528,60 +596,111 @@ export default function HabitTracker() {
             <h2>Statistics</h2>
           </div>
           
-          <div className="chart-card">
-            <h3>7-Day Progress Trend</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={progressData}>
-                <XAxis dataKey="day" />
-                <YAxis domain={[0, 100]} />
-                <Bar dataKey="completion" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          
-          <div className="habits-stats-grid">
-            {habits.map((habit, index) => {
-              const stats = getHabitStats(index, 30)
-              return (
-                <div key={habit.id} className="habit-stat-card">
-                  <div className="stat-card-header">
-                    <div className="habit-icon-stat" style={{ backgroundColor: habit.color }}>
-                      {habit.emoji}
-                    </div>
-                    <div className="stat-info">
-                      <h4>{habit.name}</h4>
-                      <div className="stat-metrics">
-                        <span className="metric success">✅ {stats.completed}</span>
-                        <span className="metric missed">❌ {stats.notDone}</span>
-                        <span className="metric percentage">{stats.percentage}%</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="stat-progress-bar">
-                    <div className="stat-bar-bg">
-                      <div 
-                        className="stat-bar-fill" 
-                        style={{ 
-                          width: `${stats.percentage}%`,
-                          backgroundColor: habit.color 
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                  <div className="stat-achievements">
-                    <div className="achievement">
-                      <span className="achievement-icon">🔥</span>
-                      <span>Current: {habit.streak} days</span>
-                    </div>
-                    <div className="achievement">
-                      <span className="achievement-icon">🏆</span>
-                      <span>Best: {habit.bestStreak} days</span>
+          {habits.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">📊</div>
+              <h3>No data to show</h3>
+              <p>Add some habits to see your progress statistics</p>
+              <button className="empty-cta" onClick={() => setViewMode('today')}>
+                <span className="cta-icon">🎯</span>
+                Go to Habits
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="chart-card">
+                <div className="chart-header">
+                  <h3>7-Day Progress Trend</h3>
+                  <div className="chart-legend">
+                    <div className="legend-item">
+                      <div className="legend-color" style={{ backgroundColor: '#6366f1' }}></div>
+                      <span>Completion %</span>
                     </div>
                   </div>
                 </div>
-              )
-            })}
-          </div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={progressData}>
+                    <XAxis 
+                      dataKey="day" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#64748b' }}
+                    />
+                    <YAxis 
+                      domain={[0, 100]} 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#64748b' }}
+                    />
+                    <Bar 
+                      dataKey="completion" 
+                      fill="#6366f1" 
+                      radius={[4, 4, 0, 0]}
+                      animationDuration={800}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="chart-insights">
+                  <div className="insight">
+                    <span className="insight-label">Average:</span>
+                    <span className="insight-value">
+                      {Math.round(progressData.reduce((sum, day) => sum + day.completion, 0) / progressData.length)}%
+                    </span>
+                  </div>
+                  <div className="insight">
+                    <span className="insight-label">Best Day:</span>
+                    <span className="insight-value">
+                      {Math.max(...progressData.map(d => d.completion))}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="habits-stats-grid">
+                {habits.map((habit, index) => {
+                  const stats = getHabitStats(index, 30)
+                  return (
+                    <div key={habit.id} className="habit-stat-card">
+                      <div className="stat-card-header">
+                        <div className="habit-icon-stat" style={{ backgroundColor: habit.color }}>
+                          {habit.emoji}
+                        </div>
+                        <div className="stat-info">
+                          <h4>{habit.name}</h4>
+                          <div className="stat-metrics">
+                            <span className="metric success">✅ {stats.completed}</span>
+                            <span className="metric missed">❌ {stats.notDone}</span>
+                            <span className="metric percentage">{stats.percentage}%</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="stat-progress-bar">
+                        <div className="stat-bar-bg">
+                          <div 
+                            className="stat-bar-fill" 
+                            style={{ 
+                              width: `${stats.percentage}%`,
+                              backgroundColor: habit.color 
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="stat-achievements">
+                        <div className="achievement">
+                          <span className="achievement-icon">🔥</span>
+                          <span>Current: {habit.streak} days</span>
+                        </div>
+                        <div className="achievement">
+                          <span className="achievement-icon">🏆</span>
+                          <span>Best: {habit.bestStreak} days</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
 
