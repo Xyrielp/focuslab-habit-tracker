@@ -584,6 +584,10 @@ body {
   background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
 }
 
+.todo-card:hover .delete-btn-separated {
+  opacity: 1;
+}
+
 .todo-content {
   display: flex;
   align-items: center;

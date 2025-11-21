@@ -564,8 +564,11 @@ export default function HabitTracker() {
                     </div>
                   </div>
                   <button 
-                    className="delete-btn"
-                    onClick={() => deleteTodo(todo.id)}
+                    className="delete-btn-separated"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      deleteTodo(todo.id)
+                    }}
                   >
                     <span>×</span>
                   </button>
