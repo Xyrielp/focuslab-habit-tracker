@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import PWAInstaller from './PWAInstaller'
 
 interface HabitData {
   [habitIndex: number]: {
@@ -163,6 +164,7 @@ export default function HabitTracker() {
 
   return (
     <div className="habit-app">
+      <PWAInstaller />
       {/* Header with Progress */}
       <div className="app-header">
         <div className="header-content">

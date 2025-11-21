@@ -801,6 +801,90 @@ body {
   }
 }
 
+/* PWA Install Banner */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px;
+  z-index: 1001;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.install-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 428px;
+  margin: 0 auto;
+}
+
+.install-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.install-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.install-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.install-subtitle {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.install-btn {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.install-btn:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.close-btn:hover {
+  opacity: 1;
+}
+
 /* Landscape orientation adjustments */
 @media (orientation: landscape) and (max-height: 500px) {
   .app-header {
@@ -809,5 +893,10 @@ body {
   
   .today-view, .week-view, .stats-view {
     padding-bottom: 80px;
+  }
+  
+  .pwa-install-banner {
+    position: relative;
+    margin-bottom: 0;
   }
 }
