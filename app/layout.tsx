@@ -1,4 +1,5 @@
 import './globals.css'
+import ServiceWorkerRegistration from './components/ServiceWorkerRegistration'
 
 export const metadata = {
   title: 'FocusLab - Habit Tracker',
@@ -20,7 +21,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="FocusLab" />
       </head>
-      <body>{children}</body>
+      <body>
+        <ServiceWorkerRegistration />
+        {children}
+      </body>
     </html>
   )
 }
