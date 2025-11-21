@@ -18,6 +18,13 @@ body {
   overflow: hidden;
 }
 
+@media (max-width: 768px) {
+  .habit-tracker {
+    margin: 10px;
+    border-radius: 4px;
+  }
+}
+
 .header {
   background: #2563eb;
   color: white;
@@ -31,10 +38,25 @@ body {
   min-height: 500px;
 }
 
+@media (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+}
+
 .habits-column {
   background: #f8fafc;
   border-right: 2px solid #e2e8f0;
   padding: 10px;
+}
+
+@media (max-width: 768px) {
+  .habits-column {
+    border-right: none;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 15px;
+  }
 }
 
 .habit-input {
@@ -61,6 +83,15 @@ body {
   gap: 1px;
   background: #e2e8f0;
   padding: 10px;
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  .calendar-grid {
+    grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
+    padding: 5px;
+    gap: 0.5px;
+  }
 }
 
 .date-header {
@@ -72,6 +103,13 @@ body {
   font-weight: 600;
 }
 
+@media (max-width: 768px) {
+  .date-header {
+    padding: 6px 2px;
+    font-size: 10px;
+  }
+}
+
 .checkbox-cell {
   background: white;
   padding: 8px;
@@ -81,15 +119,35 @@ body {
   min-height: 40px;
 }
 
+@media (max-width: 768px) {
+  .checkbox-cell {
+    padding: 4px;
+    min-height: 30px;
+  }
+}
+
 .checkbox-cell input[type="checkbox"] {
   width: 18px;
   height: 18px;
   cursor: pointer;
 }
 
+@media (max-width: 768px) {
+  .checkbox-cell input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+}
+
 .progress-section {
   padding: 20px;
   border-top: 2px solid #e2e8f0;
+}
+
+@media (max-width: 768px) {
+  .progress-section {
+    padding: 15px 10px;
+  }
 }
 
 .progress-title {
@@ -156,6 +214,13 @@ body {
   margin-bottom: 10px;
 }
 
+@media (max-width: 768px) {
+  .week-header {
+    grid-template-columns: 120px repeat(7, 1fr);
+    gap: 0.5px;
+  }
+}
+
 .week-day-header {
   background: #1e40af;
   color: white;
@@ -163,6 +228,13 @@ body {
   text-align: center;
   font-size: 12px;
   font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .week-day-header {
+    padding: 6px 2px;
+    font-size: 10px;
+  }
 }
 
 .week-habit-row {
@@ -173,12 +245,29 @@ body {
   align-items: center;
 }
 
+@media (max-width: 768px) {
+  .week-habit-row {
+    grid-template-columns: 120px repeat(7, 1fr);
+    gap: 0.5px;
+    margin-bottom: 2px;
+  }
+}
+
 .week-habit-name {
   background: #f8fafc;
   padding: 12px 8px;
   font-weight: 500;
   border: 1px solid #e2e8f0;
   border-radius: 4px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .week-habit-name {
+    padding: 8px 4px;
+    font-size: 12px;
+    border-radius: 2px;
+  }
 }
 
 .week-checkboxes {
@@ -195,14 +284,67 @@ body {
   border: 1px solid #e2e8f0;
 }
 
+@media (max-width: 768px) {
+  .week-checkbox-cell {
+    padding: 4px;
+    min-height: 30px;
+  }
+}
+
 .week-checkbox-cell input[type="checkbox"] {
   width: 18px;
   height: 18px;
   cursor: pointer;
 }
 
+@media (max-width: 768px) {
+  .week-checkbox-cell input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+}
+
 .empty-cell {
   background: #f9fafb;
   border: 1px solid #e2e8f0;
   min-height: 40px;
+}
+
+@media (max-width: 768px) {
+  .empty-cell {
+    min-height: 30px;
+  }
+  
+  .header {
+    padding: 15px 10px;
+  }
+  
+  .header h1 {
+    font-size: 20px;
+  }
+  
+  .view-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    margin: 0 2px;
+  }
+  
+  .nav-btn {
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+  
+  .habit-input {
+    font-size: 14px;
+    padding: 6px;
+  }
+  
+  .add-habit-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .progress-title {
+    font-size: 16px;
+  }
 }
