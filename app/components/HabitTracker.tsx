@@ -13,12 +13,45 @@ export default function HabitTracker() {
   const [habits, setHabits] = useState<string[]>([''])
   const [habitData, setHabitData] = useState<HabitData>({})
   const [currentMonth] = useState(new Date())
+  const [viewMode, setViewMode] = useState<'month' | 'week'>('month')
+  const [currentWeek, setCurrentWeek] = useState(0)
 
   const getDaysInMonth = () => {
     const year = currentMonth.getFullYear()
     const month = currentMonth.getMonth()
     const daysInMonth = new Date(year, month + 1, 0).getDate()
     return Array.from({ length: daysInMonth }, (_, i) => i + 1)
+  }
+
+  const getWeeksInMonth = () => {
+    const year = currentMonth.getFullYear()
+    const month = currentMonth.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const startDate = new Date(firstDay)
+    startDate.setDate(startDate.getDate() - firstDay.getDay())
+    
+    const weeks = []
+    const currentDate = new Date(startDate)
+    
+    while (currentDate <= lastDay) {
+      const week = []
+      for (let i = 0; i < 7; i++) {
+        if (currentDate.getMonth() === month) {
+          week.push(currentDate.getDate())
+        } else {
+          week.push(null)
+        }
+        currentDate.setDate(currentDate.getDate() + 1)
+      }
+      weeks.push(week)
+    }
+    return weeks
+  }
+
+  const getCurrentWeekDays = () => {
+    const weeks = getWeeksInMonth()
+    return weeks[currentWeek] || []
   }
 
   const formatDate = (day: number) => {
@@ -48,7 +81,7 @@ export default function HabitTracker() {
   }
 
   const getProgressData = () => {
-    const days = getDaysInMonth()
+    const days = viewMode === 'week' ? getCurrentWeekDays().filter(d => d !== null) : getDaysInMonth()
     return days.map(day => {
       const date = formatDate(day)
       const completedHabits = habits.filter((habit, index) => 
@@ -64,12 +97,47 @@ export default function HabitTracker() {
   }
 
   const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const weekNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const weeks = getWeeksInMonth()
 
   return (
     <div className="habit-tracker">
       <div className="header">
         <h1>FocusLab Habit Tracker</h1>
         <p>{monthName}</p>
+        <div style={{ marginTop: '10px' }}>
+          <button 
+            className={`view-btn ${viewMode === 'month' ? 'active' : ''}`}
+            onClick={() => setViewMode('month')}
+          >
+            Month
+          </button>
+          <button 
+            className={`view-btn ${viewMode === 'week' ? 'active' : ''}`}
+            onClick={() => setViewMode('week')}
+          >
+            Week
+          </button>
+          {viewMode === 'week' && (
+            <div style={{ marginTop: '10px' }}>
+              <button 
+                className="nav-btn"
+                onClick={() => setCurrentWeek(Math.max(0, currentWeek - 1))}
+                disabled={currentWeek === 0}
+              >
+                ← Prev
+              </button>
+              <span style={{ margin: '0 15px', color: 'white' }}>Week {currentWeek + 1}</span>
+              <button 
+                className="nav-btn"
+                onClick={() => setCurrentWeek(Math.min(weeks.length - 1, currentWeek + 1))}
+                disabled={currentWeek === weeks.length - 1}
+              >
+                Next →
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid-container">
@@ -91,30 +159,66 @@ export default function HabitTracker() {
         </div>
 
         <div>
-          <div className="calendar-grid" style={{ 
-            gridTemplateColumns: `repeat(${getDaysInMonth().length}, 1fr)` 
-          }}>
-            {getDaysInMonth().map(day => (
-              <div key={day} className="date-header">
-                {day}
-              </div>
-            ))}
-            
-            {habits.map((habit, habitIndex) => 
-              habit.trim() ? getDaysInMonth().map(day => {
-                const date = formatDate(day)
-                return (
-                  <div key={`${habitIndex}-${day}`} className="checkbox-cell">
-                    <input
-                      type="checkbox"
-                      checked={habitData[habitIndex]?.[date] || false}
-                      onChange={() => toggleHabit(habitIndex, date)}
-                    />
+          {viewMode === 'month' ? (
+            <div className="calendar-grid" style={{ 
+              gridTemplateColumns: `repeat(${getDaysInMonth().length}, 1fr)` 
+            }}>
+              {getDaysInMonth().map(day => (
+                <div key={day} className="date-header">
+                  {day}
+                </div>
+              ))}
+              
+              {habits.map((habit, habitIndex) => 
+                habit.trim() ? getDaysInMonth().map(day => {
+                  const date = formatDate(day)
+                  return (
+                    <div key={`${habitIndex}-${day}`} className="checkbox-cell">
+                      <input
+                        type="checkbox"
+                        checked={habitData[habitIndex]?.[date] || false}
+                        onChange={() => toggleHabit(habitIndex, date)}
+                      />
+                    </div>
+                  )
+                }) : null
+              )}
+            </div>
+          ) : (
+            <div className="week-view">
+              <div className="week-header">
+                {getCurrentWeekDays().map((day, index) => (
+                  <div key={index} className="week-day-header">
+                    <div>{weekNames[index]}</div>
+                    <div>{day || ''}</div>
                   </div>
-                )
-              }) : null
-            )}
-          </div>
+                ))}
+              </div>
+              
+              {habits.map((habit, habitIndex) => 
+                habit.trim() ? (
+                  <div key={habitIndex} className="week-habit-row">
+                    <div className="week-habit-name">{habit}</div>
+                    <div className="week-checkboxes">
+                      {getCurrentWeekDays().map((day, dayIndex) => {
+                        if (day === null) return <div key={dayIndex} className="empty-cell"></div>
+                        const date = formatDate(day)
+                        return (
+                          <div key={dayIndex} className="week-checkbox-cell">
+                            <input
+                              type="checkbox"
+                              checked={habitData[habitIndex]?.[date] || false}
+                              onChange={() => toggleHabit(habitIndex, date)}
+                            />
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ) : null
+              )}
+            </div>
+          )}
         </div>
       </div>
 
