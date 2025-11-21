@@ -21,14 +21,27 @@ interface Habit {
   createdAt: string
 }
 
+interface Todo {
+  id: string
+  text: string
+  completed: boolean
+  priority: 'low' | 'medium' | 'high'
+  createdAt: string
+  dueDate?: string
+}
+
 export default function HabitTracker() {
   const [habits, setHabits] = useLocalStorage<Habit[]>('focuslab-habits', [])
   const [habitData, setHabitData] = useLocalStorage<HabitData>('focuslab-data', {})
+  const [todos, setTodos] = useLocalStorage<Todo[]>('focuslab-todos', [])
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [viewMode, setViewMode] = useLocalStorage<'today' | 'week' | 'stats'>('focuslab-view', 'today')
+  const [viewMode, setViewMode] = useLocalStorage<'today' | 'week' | 'stats' | 'todos'>('focuslab-view', 'today')
   const [showAddHabit, setShowAddHabit] = useState(false)
+  const [showAddTodo, setShowAddTodo] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
+  const [newTodoText, setNewTodoText] = useState('')
   const [selectedEmoji, setSelectedEmoji] = useState('🎯')
+  const [selectedPriority, setSelectedPriority] = useState<'low' | 'medium' | 'high'>('medium')
   
   const emojis = ['🎯', '💪', '📚', '🏃', '💧', '🧘', '🎨', '💼', '🌱', '⚡', '🔥', '✨']
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
@@ -38,23 +51,30 @@ export default function HabitTracker() {
 
   const getTodayStats = () => {
     const today = formatDate(new Date())
-    const completed = habits.filter((_, index) => habitData[index]?.[today]).length
-    const total = habits.length
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
-    const notDone = total - completed
-    return { completed, total, percentage, notDone }
+    const completedHabits = habits.filter((_, index) => habitData[index]?.[today]).length
+    const totalHabits = habits.length
+    const completedTodos = todos.filter(todo => todo.completed).length
+    const totalTodos = todos.length
+    
+    const habitPercentage = totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0
+    const todoPercentage = totalTodos > 0 ? Math.round((completedTodos / totalTodos) * 100) : 0
+    const overallPercentage = Math.round(((completedHabits + completedTodos) / (totalHabits + totalTodos)) * 100) || 0
+    
+    return { 
+      habits: { completed: completedHabits, total: totalHabits, percentage: habitPercentage },
+      todos: { completed: completedTodos, total: totalTodos, percentage: todoPercentage },
+      overall: { percentage: overallPercentage, completed: completedHabits + completedTodos, total: totalHabits + totalTodos }
+    }
   }
 
   const getHabitStats = (habitIndex: number, days: number = 30) => {
     const endDate = new Date()
     const startDate = new Date(endDate.getTime() - (days - 1) * 24 * 60 * 60 * 1000)
+    const habitCreated = new Date(habits[habitIndex]?.createdAt || endDate)
+    const actualStartDate = startDate > habitCreated ? startDate : habitCreated
     
     let completed = 0
     let total = 0
-    
-    // Only count days since habit was created
-    const habitCreated = new Date(habits[habitIndex]?.createdAt || endDate)
-    const actualStartDate = startDate > habitCreated ? startDate : habitCreated
     
     for (let d = new Date(actualStartDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = formatDate(d)
@@ -102,24 +122,19 @@ export default function HabitTracker() {
     let streak = 0
     let date = new Date()
     
-    // Check from today backwards
     while (true) {
       const dateStr = formatDate(date)
       if (habitData[habitIndex]?.[dateStr]) {
         streak++
       } else {
-        // If today is not completed, streak is 0
         if (streak === 0 && formatDate(date) === formatDate(new Date())) {
           break
         }
-        // If we hit a gap after starting the streak, stop
         if (streak > 0) {
           break
         }
       }
       date.setDate(date.getDate() - 1)
-      
-      // Prevent infinite loop - only check last 365 days
       if (streak > 365) break
     }
     return streak
@@ -143,6 +158,32 @@ export default function HabitTracker() {
     setShowAddHabit(false)
   }
 
+  const addTodo = () => {
+    if (!newTodoText.trim()) return
+    
+    const newTodo: Todo = {
+      id: generateId(),
+      text: newTodoText.trim(),
+      completed: false,
+      priority: selectedPriority,
+      createdAt: new Date().toISOString()
+    }
+    
+    setTodos([...todos, newTodo])
+    setNewTodoText('')
+    setShowAddTodo(false)
+  }
+
+  const toggleTodo = (todoId: string) => {
+    setTodos(todos.map(todo => 
+      todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
+    ))
+  }
+
+  const deleteTodo = (todoId: string) => {
+    setTodos(todos.filter(todo => todo.id !== todoId))
+  }
+
   const deleteHabit = (index: number) => {
     setHabits(habits.filter((_, i) => i !== index))
     const newData = { ...habitData }
@@ -154,7 +195,6 @@ export default function HabitTracker() {
     const dateStr = formatDate(date)
     const wasCompleted = habitData[habitIndex]?.[dateStr] || false
     
-    // Update habit data
     setHabitData(prev => ({
       ...prev,
       [habitIndex]: {
@@ -163,7 +203,6 @@ export default function HabitTracker() {
       }
     }))
     
-    // Update streaks immediately
     setTimeout(() => {
       const updatedHabits = habits.map((habit, index) => {
         if (index === habitIndex) {
@@ -184,89 +223,126 @@ export default function HabitTracker() {
   const weekDays = getWeekDays()
   const progressData = getProgressData()
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return '#ef4444'
+      case 'medium': return '#f59e0b'
+      case 'low': return '#10b981'
+      default: return '#6b7280'
+    }
+  }
+
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case 'high': return '🔴'
+      case 'medium': return '🟡'
+      case 'low': return '🟢'
+      default: return '⚪'
+    }
+  }
+
   return (
     <div className="habit-app">
       <PWAInstaller />
-      {/* Header with Progress */}
+      
+      {/* Enhanced Header with Overall Progress */}
       <div className="app-header">
         <div className="header-content">
-          <h1>🎯 FocusLab</h1>
-          <div className="today-progress">
-            <div className="progress-circle">
+          <div className="header-left">
+            <h1>🎯 FocusLab</h1>
+            <p className="header-subtitle">Stay focused, build habits</p>
+          </div>
+          <div className="overall-progress">
+            <div className="progress-ring">
               <svg viewBox="0 0 36 36" className="circular-chart">
                 <path
                   className="circle-bg"
-                  d="M18 2.0845
-                    a 15.9155 15.9155 0 0 1 0 31.831
-                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
                 <path
                   className="circle"
-                  strokeDasharray={`${todayStats.percentage}, 100`}
-                  d="M18 2.0845
-                    a 15.9155 15.9155 0 0 1 0 31.831
-                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                  strokeDasharray={`${todayStats.overall.percentage}, 100`}
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
-                <text x="18" y="20.35" className="percentage">{todayStats.percentage}%</text>
+                <text x="18" y="20.35" className="percentage">{todayStats.overall.percentage}%</text>
               </svg>
             </div>
-            <div className="progress-text">
-              <div className="progress-main">{todayStats.completed}/{todayStats.total}</div>
-              <div className="progress-label">Today</div>
+            <div className="progress-details">
+              <div className="progress-main">{todayStats.overall.completed}/{todayStats.overall.total}</div>
+              <div className="progress-label">Overall</div>
             </div>
           </div>
         </div>
         
-        <div className="stats-overview">
-          <div className="stat-pill completed">
-            <span className="stat-icon">✅</span>
-            <span className="stat-text">Done: {todayStats.completed}</span>
+        <div className="stats-grid">
+          <div className="stat-card habits">
+            <div className="stat-icon">✅</div>
+            <div className="stat-info">
+              <div className="stat-number">{todayStats.habits.completed}/{todayStats.habits.total}</div>
+              <div className="stat-label">Habits</div>
+              <div className="stat-progress">
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: `${todayStats.habits.percentage}%` }}></div>
+                </div>
+                <span className="progress-percent">{todayStats.habits.percentage}%</span>
+              </div>
+            </div>
           </div>
-          <div className="stat-pill pending">
-            <span className="stat-icon">⏳</span>
-            <span className="stat-text">Left: {todayStats.notDone}</span>
-          </div>
-          <div className="stat-pill total">
-            <span className="stat-icon">📊</span>
-            <span className="stat-text">Total: {todayStats.total}</span>
+          
+          <div className="stat-card todos">
+            <div className="stat-icon">📝</div>
+            <div className="stat-info">
+              <div className="stat-number">{todayStats.todos.completed}/{todayStats.todos.total}</div>
+              <div className="stat-label">Tasks</div>
+              <div className="stat-progress">
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: `${todayStats.todos.percentage}%` }}></div>
+                </div>
+                <span className="progress-percent">{todayStats.todos.percentage}%</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* View Toggle */}
-      <div className="view-toggle">
+      {/* Enhanced Navigation */}
+      <div className="nav-tabs">
         <button 
-          className={`toggle-btn ${viewMode === 'today' ? 'active' : ''}`}
+          className={`nav-tab ${viewMode === 'today' ? 'active' : ''}`}
           onClick={() => setViewMode('today')}
         >
-          <span className="toggle-icon">📅</span>
-          Today
+          <span className="nav-icon">🏠</span>
+          <span className="nav-label">Today</span>
         </button>
         <button 
-          className={`toggle-btn ${viewMode === 'week' ? 'active' : ''}`}
+          className={`nav-tab ${viewMode === 'todos' ? 'active' : ''}`}
+          onClick={() => setViewMode('todos')}
+        >
+          <span className="nav-icon">📝</span>
+          <span className="nav-label">Tasks</span>
+        </button>
+        <button 
+          className={`nav-tab ${viewMode === 'week' ? 'active' : ''}`}
           onClick={() => setViewMode('week')}
         >
-          <span className="toggle-icon">📆</span>
-          Week
+          <span className="nav-icon">📅</span>
+          <span className="nav-label">Week</span>
         </button>
         <button 
-          className={`toggle-btn ${viewMode === 'stats' ? 'active' : ''}`}
+          className={`nav-tab ${viewMode === 'stats' ? 'active' : ''}`}
           onClick={() => setViewMode('stats')}
         >
-          <span className="toggle-icon">📈</span>
-          Stats
+          <span className="nav-icon">📊</span>
+          <span className="nav-label">Stats</span>
         </button>
       </div>
 
       {/* Today View */}
       {viewMode === 'today' && (
-        <div className="today-view">
-          <div className="date-header">
-            <h2>{new Date().toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              month: 'long', 
-              day: 'numeric' 
-            })}</h2>
+        <div className="content-view">
+          <div className="section-header">
+            <h2>Today's Habits</h2>
+            <span className="section-count">{habits.length}</span>
           </div>
           
           <div className="habits-grid">
@@ -278,48 +354,50 @@ export default function HabitTracker() {
               return (
                 <div 
                   key={habit.id} 
-                  className={`habit-card ${isCompleted ? 'completed' : ''}`}
+                  className={`habit-card modern ${isCompleted ? 'completed' : ''}`}
                   onClick={() => toggleHabit(index, new Date())}
                 >
-                  <div className="habit-main">
+                  <div className="card-header">
                     <div className="habit-icon" style={{ backgroundColor: habit.color }}>
                       {habit.emoji}
                     </div>
                     <div className="habit-info">
                       <h3>{habit.name}</h3>
                       <div className="habit-meta">
-                        <span className="habit-streak">🔥 {habit.streak}</span>
-                        <span className="habit-completion">{stats.percentage}% this week</span>
+                        <span className="streak">🔥 {habit.streak} days</span>
+                        <span className="completion">{stats.percentage}% this week</span>
                       </div>
                     </div>
-                    <div className="habit-check">
-                      {isCompleted ? '✅' : '⭕'}
+                    <div className="completion-check">
+                      <div className={`check-circle ${isCompleted ? 'checked' : ''}`}>
+                        {isCompleted && <span className="check-mark">✓</span>}
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="habit-progress-bar">
-                    <div className="progress-bar-bg">
-                      <div 
-                        className="progress-bar-fill" 
-                        style={{ 
-                          width: `${stats.percentage}%`,
-                          backgroundColor: habit.color 
-                        }}
-                      ></div>
-                    </div>
-                    <div className="progress-stats">
-                      <span>{stats.completed}/{stats.total} days</span>
+                  <div className="progress-section">
+                    <div className="progress-bar-container">
+                      <div className="progress-bar-bg">
+                        <div 
+                          className="progress-bar-fill animated" 
+                          style={{ 
+                            width: `${stats.percentage}%`,
+                            backgroundColor: habit.color 
+                          }}
+                        ></div>
+                      </div>
+                      <span className="progress-text">{stats.completed}/{stats.total}</span>
                     </div>
                   </div>
                   
                   <button 
-                    className="delete-habit"
+                    className="delete-btn"
                     onClick={(e) => {
                       e.stopPropagation()
                       deleteHabit(index)
                     }}
                   >
-                    ×
+                    <span>×</span>
                   </button>
                 </div>
               )
@@ -328,23 +406,67 @@ export default function HabitTracker() {
         </div>
       )}
 
+      {/* To-Do List View */}
+      {viewMode === 'todos' && (
+        <div className="content-view">
+          <div className="section-header">
+            <h2>Tasks</h2>
+            <span className="section-count">{todos.length}</span>
+          </div>
+          
+          <div className="todos-grid">
+            {todos.map((todo) => (
+              <div 
+                key={todo.id} 
+                className={`todo-card ${todo.completed ? 'completed' : ''}`}
+              >
+                <div className="todo-content" onClick={() => toggleTodo(todo.id)}>
+                  <div className="todo-check">
+                    <div className={`check-circle ${todo.completed ? 'checked' : ''}`}>
+                      {todo.completed && <span className="check-mark">✓</span>}
+                    </div>
+                  </div>
+                  <div className="todo-info">
+                    <p className="todo-text">{todo.text}</p>
+                    <div className="todo-meta">
+                      <span className="priority" style={{ color: getPriorityColor(todo.priority) }}>
+                        {getPriorityIcon(todo.priority)} {todo.priority}
+                      </span>
+                      <span className="created-date">
+                        {new Date(todo.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  className="delete-btn"
+                  onClick={() => deleteTodo(todo.id)}
+                >
+                  <span>×</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Week View */}
       {viewMode === 'week' && (
-        <div className="week-view">
-          <div className="week-header">
-            <button onClick={() => setCurrentDate(new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000))}>
+        <div className="content-view">
+          <div className="week-navigation">
+            <button className="nav-arrow" onClick={() => setCurrentDate(new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000))}>
               ←
             </button>
             <h2>Week of {weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</h2>
-            <button onClick={() => setCurrentDate(new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000))}>
+            <button className="nav-arrow" onClick={() => setCurrentDate(new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000))}>
               →
             </button>
           </div>
           
-          <div className="week-grid">
-            <div className="week-days">
+          <div className="week-container">
+            <div className="week-header">
               {weekDays.map(date => (
-                <div key={date.toISOString()} className="day-header">
+                <div key={date.toISOString()} className="day-column">
                   <div className="day-name">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
                   <div className="day-number">{date.getDate()}</div>
                 </div>
@@ -355,25 +477,27 @@ export default function HabitTracker() {
               const weekStats = getHabitStats(habitIndex, 7)
               return (
                 <div key={habit.id} className="habit-week-row">
-                  <div className="habit-label">
-                    <span className="habit-emoji">{habit.emoji}</span>
+                  <div className="habit-info-column">
+                    <div className="habit-icon-small" style={{ backgroundColor: habit.color }}>
+                      {habit.emoji}
+                    </div>
                     <div className="habit-details">
                       <span className="habit-name">{habit.name}</span>
-                      <div className="week-progress-bar">
-                        <div className="progress-bar-bg">
+                      <div className="week-progress">
+                        <div className="mini-progress-bar">
                           <div 
-                            className="progress-bar-fill" 
+                            className="mini-progress-fill" 
                             style={{ 
                               width: `${weekStats.percentage}%`,
                               backgroundColor: habit.color 
                             }}
                           ></div>
                         </div>
-                        <span className="progress-text">{weekStats.percentage}%</span>
+                        <span className="progress-percentage">{weekStats.percentage}%</span>
                       </div>
                     </div>
                   </div>
-                  <div className="habit-checks">
+                  <div className="week-checks">
                     {weekDays.map(date => {
                       const dateStr = formatDate(date)
                       const isCompleted = habitData[habitIndex]?.[dateStr] || false
@@ -381,11 +505,11 @@ export default function HabitTracker() {
                       return (
                         <button
                           key={date.toISOString()}
-                          className={`check-btn ${isCompleted ? 'completed' : ''}`}
+                          className={`day-check ${isCompleted ? 'completed' : ''}`}
                           onClick={() => toggleHabit(habitIndex, date)}
                           style={{ borderColor: habit.color }}
                         >
-                          {isCompleted ? '✓' : ''}
+                          {isCompleted && <span className="check-mark">✓</span>}
                         </button>
                       )
                     })}
@@ -399,13 +523,13 @@ export default function HabitTracker() {
 
       {/* Stats View */}
       {viewMode === 'stats' && (
-        <div className="stats-view">
-          <div className="stats-header">
-            <h2>📊 Statistics</h2>
+        <div className="content-view">
+          <div className="section-header">
+            <h2>Statistics</h2>
           </div>
           
-          <div className="chart-container">
-            <h3>7-Day Progress</h3>
+          <div className="chart-card">
+            <h3>7-Day Progress Trend</h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={progressData}>
                 <XAxis dataKey="day" />
@@ -415,26 +539,25 @@ export default function HabitTracker() {
             </ResponsiveContainer>
           </div>
           
-          <div className="habits-stats">
-            <h3>Habit Performance (30 days)</h3>
+          <div className="habits-stats-grid">
             {habits.map((habit, index) => {
               const stats = getHabitStats(index, 30)
               return (
                 <div key={habit.id} className="habit-stat-card">
-                  <div className="habit-stat-header">
-                    <div className="habit-icon-small" style={{ backgroundColor: habit.color }}>
+                  <div className="stat-card-header">
+                    <div className="habit-icon-stat" style={{ backgroundColor: habit.color }}>
                       {habit.emoji}
                     </div>
-                    <div className="habit-stat-info">
+                    <div className="stat-info">
                       <h4>{habit.name}</h4>
-                      <div className="stat-numbers">
-                        <span className="completed-stat">✅ {stats.completed}</span>
-                        <span className="missed-stat">❌ {stats.notDone}</span>
-                        <span className="percentage-stat">{stats.percentage}%</span>
+                      <div className="stat-metrics">
+                        <span className="metric success">✅ {stats.completed}</span>
+                        <span className="metric missed">❌ {stats.notDone}</span>
+                        <span className="metric percentage">{stats.percentage}%</span>
                       </div>
                     </div>
                   </div>
-                  <div className="habit-stat-bar">
+                  <div className="stat-progress-bar">
                     <div className="stat-bar-bg">
                       <div 
                         className="stat-bar-fill" 
@@ -445,7 +568,7 @@ export default function HabitTracker() {
                       ></div>
                     </div>
                   </div>
-                  <div className="habit-achievements">
+                  <div className="stat-achievements">
                     <div className="achievement">
                       <span className="achievement-icon">🔥</span>
                       <span>Current: {habit.streak} days</span>
@@ -462,47 +585,124 @@ export default function HabitTracker() {
         </div>
       )}
 
-      {/* Add Habit FAB */}
-      <button 
-        className="add-habit-fab"
-        onClick={() => setShowAddHabit(true)}
-      >
-        +
-      </button>
+      {/* Floating Action Buttons */}
+      <div className="fab-container">
+        {viewMode === 'today' && (
+          <button 
+            className="fab primary"
+            onClick={() => setShowAddHabit(true)}
+          >
+            <span className="fab-icon">+</span>
+            <span className="fab-label">Add Habit</span>
+          </button>
+        )}
+        {viewMode === 'todos' && (
+          <button 
+            className="fab primary"
+            onClick={() => setShowAddTodo(true)}
+          >
+            <span className="fab-icon">+</span>
+            <span className="fab-label">Add Task</span>
+          </button>
+        )}
+      </div>
 
       {/* Add Habit Modal */}
       {showAddHabit && (
         <div className="modal-overlay" onClick={() => setShowAddHabit(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3>Add New Habit</h3>
-            
-            <div className="emoji-picker">
-              {emojis.map(emoji => (
-                <button
-                  key={emoji}
-                  className={`emoji-btn ${selectedEmoji === emoji ? 'selected' : ''}`}
-                  onClick={() => setSelectedEmoji(emoji)}
-                >
-                  {emoji}
-                </button>
-              ))}
+          <div className="modal-content modern" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Create New Habit</h3>
+              <button className="modal-close" onClick={() => setShowAddHabit(false)}>×</button>
             </div>
             
-            <input
-              type="text"
-              placeholder="Habit name..."
-              value={newHabitName}
-              onChange={(e) => setNewHabitName(e.target.value)}
-              className="habit-name-input"
-              autoFocus
-            />
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Choose Icon</label>
+                <div className="emoji-grid">
+                  {emojis.map(emoji => (
+                    <button
+                      key={emoji}
+                      className={`emoji-option ${selectedEmoji === emoji ? 'selected' : ''}`}
+                      onClick={() => setSelectedEmoji(emoji)}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="form-group">
+                <label>Habit Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Drink 8 glasses of water"
+                  value={newHabitName}
+                  onChange={(e) => setNewHabitName(e.target.value)}
+                  className="form-input"
+                  autoFocus
+                />
+              </div>
+            </div>
             
             <div className="modal-actions">
-              <button className="cancel-btn" onClick={() => setShowAddHabit(false)}>
+              <button className="btn secondary" onClick={() => setShowAddHabit(false)}>
                 Cancel
               </button>
-              <button className="add-btn" onClick={addHabit}>
-                Add Habit
+              <button className="btn primary" onClick={addHabit}>
+                Create Habit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Todo Modal */}
+      {showAddTodo && (
+        <div className="modal-overlay" onClick={() => setShowAddTodo(false)}>
+          <div className="modal-content modern" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Create New Task</h3>
+              <button className="modal-close" onClick={() => setShowAddTodo(false)}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Task Description</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Buy groceries for dinner"
+                  value={newTodoText}
+                  onChange={(e) => setNewTodoText(e.target.value)}
+                  className="form-input"
+                  autoFocus
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Priority Level</label>
+                <div className="priority-options">
+                  {(['low', 'medium', 'high'] as const).map(priority => (
+                    <button
+                      key={priority}
+                      className={`priority-option ${selectedPriority === priority ? 'selected' : ''}`}
+                      onClick={() => setSelectedPriority(priority)}
+                      style={{ borderColor: getPriorityColor(priority) }}
+                    >
+                      <span className="priority-icon">{getPriorityIcon(priority)}</span>
+                      <span className="priority-label">{priority}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="modal-actions">
+              <button className="btn secondary" onClick={() => setShowAddTodo(false)}>
+                Cancel
+              </button>
+              <button className="btn primary" onClick={addTodo}>
+                Create Task
               </button>
             </div>
           </div>
