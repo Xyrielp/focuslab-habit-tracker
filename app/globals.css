@@ -11,10 +11,11 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 .habit-app {
-  max-width: 428px;
+  max-width: min(100vw, 428px);
   margin: 0 auto;
   background: white;
   min-height: 100vh;
@@ -22,11 +23,11 @@ body {
   overflow-x: hidden;
 }
 
-/* Header */
+/* Header with Progress */
 .app-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 20px 20px 15px;
+  padding: max(env(safe-area-inset-top), 20px) 20px 20px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -36,61 +37,100 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
 .header-content h1 {
-  font-size: 24px;
+  font-size: clamp(20px, 5vw, 24px);
   font-weight: 700;
 }
 
-.stats-btn {
-  background: rgba(255,255,255,0.2);
-  border: none;
-  padding: 8px 12px;
+.today-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-circle {
+  width: 48px;
+  height: 48px;
+}
+
+.circular-chart {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.circle-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.2);
+  stroke-width: 2.8;
+}
+
+.circle {
+  fill: none;
+  stroke: #10b981;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  animation: progress 1s ease-in-out forwards;
+}
+
+.percentage {
+  fill: white;
+  font-family: sans-serif;
+  font-size: 0.4em;
+  text-anchor: middle;
+  font-weight: 600;
+}
+
+@keyframes progress {
+  0% {
+    stroke-dasharray: 0 100;
+  }
+}
+
+.progress-text {
+  text-align: right;
+}
+
+.progress-main {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.progress-label {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.stats-overview {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.15);
+  padding: 6px 12px;
   border-radius: 20px;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.stats-btn:hover {
-  background: rgba(255,255,255,0.3);
-}
-
-.stats-card {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  background: rgba(255,255,255,0.1);
-  padding: 15px;
-  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
   backdrop-filter: blur(10px);
 }
 
-.stat-item {
-  text-align: center;
-}
-
-.stat-number {
-  display: block;
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 12px;
-  opacity: 0.9;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.stat-icon {
+  font-size: 14px;
 }
 
 /* View Toggle */
 .view-toggle {
   display: flex;
-  margin: 20px;
+  margin: 16px;
   background: #f1f5f9;
   border-radius: 12px;
   padding: 4px;
@@ -100,13 +140,17 @@ body {
   flex: 1;
   background: transparent;
   border: none;
-  padding: 12px;
+  padding: 12px 8px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #64748b;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .toggle-btn.active {
@@ -115,17 +159,21 @@ body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+.toggle-icon {
+  font-size: 16px;
+}
+
 /* Today View */
 .today-view {
-  padding: 0 20px 100px;
+  padding: 0 16px calc(env(safe-area-inset-bottom) + 100px);
 }
 
 .date-header {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .date-header h2 {
-  font-size: 18px;
+  font-size: clamp(16px, 4vw, 18px);
   font-weight: 600;
   color: #374151;
 }
@@ -137,9 +185,6 @@ body {
 }
 
 .habit-card {
-  display: flex;
-  align-items: center;
-  padding: 16px;
   background: white;
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -147,6 +192,7 @@ body {
   transition: all 0.2s;
   position: relative;
   border: 2px solid transparent;
+  overflow: hidden;
 }
 
 .habit-card:active {
@@ -158,36 +204,76 @@ body {
   background: #f0fdf4;
 }
 
+.habit-main {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+}
+
 .habit-icon {
-  width: 48px;
-  height: 48px;
+  width: clamp(40px, 10vw, 48px);
+  height: clamp(40px, 10vw, 48px);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: clamp(20px, 5vw, 24px);
   margin-right: 16px;
+  flex-shrink: 0;
 }
 
 .habit-info {
   flex: 1;
+  min-width: 0;
 }
 
 .habit-info h3 {
-  font-size: 16px;
+  font-size: clamp(14px, 3.5vw, 16px);
   font-weight: 600;
   margin-bottom: 4px;
   color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.habit-streak {
-  font-size: 14px;
+.habit-meta {
+  display: flex;
+  gap: 12px;
+  font-size: clamp(11px, 3vw, 12px);
   color: #6b7280;
 }
 
 .habit-check {
-  font-size: 24px;
+  font-size: clamp(20px, 5vw, 24px);
   margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.habit-progress-bar {
+  padding: 0 16px 16px;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #6b7280;
 }
 
 .delete-habit {
@@ -212,14 +298,14 @@ body {
 
 /* Week View */
 .week-view {
-  padding: 0 20px 100px;
+  padding: 0 16px calc(env(safe-area-inset-bottom) + 100px);
 }
 
 .week-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .week-header button {
@@ -233,12 +319,8 @@ body {
   transition: all 0.2s;
 }
 
-.week-header button:hover {
-  background: #e2e8f0;
-}
-
 .week-header h2 {
-  font-size: 16px;
+  font-size: clamp(14px, 3.5vw, 16px);
   font-weight: 600;
   color: #374151;
 }
@@ -258,18 +340,18 @@ body {
 }
 
 .day-header {
-  padding: 12px 8px;
+  padding: 12px 4px;
   text-align: center;
 }
 
 .day-name {
-  font-size: 12px;
+  font-size: 10px;
   color: #6b7280;
   margin-bottom: 4px;
 }
 
 .day-number {
-  font-size: 16px;
+  font-size: clamp(12px, 3vw, 14px);
   font-weight: 600;
   color: #1f2937;
 }
@@ -278,8 +360,9 @@ body {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  padding: 16px;
+  padding: 12px;
   border-bottom: 1px solid #f1f5f9;
+  gap: 12px;
 }
 
 .habit-week-row:last-child {
@@ -290,32 +373,65 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .habit-emoji {
-  font-size: 20px;
+  font-size: clamp(16px, 4vw, 18px);
+  flex-shrink: 0;
+}
+
+.habit-details {
+  flex: 1;
+  min-width: 0;
 }
 
 .habit-name {
-  font-size: 14px;
+  font-size: clamp(12px, 3vw, 14px);
   font-weight: 500;
   color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.week-progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.week-progress-bar .progress-bar-bg {
+  flex: 1;
+  height: 4px;
+  background: #f1f5f9;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.week-progress-bar .progress-text {
+  font-size: 10px;
+  color: #6b7280;
+  font-weight: 500;
+  min-width: 30px;
+  text-align: right;
 }
 
 .habit-checks {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 4px;
 }
 
 .check-btn {
-  width: 32px;
-  height: 32px;
+  width: clamp(24px, 6vw, 28px);
+  height: clamp(24px, 6vw, 28px);
   border: 2px solid #e2e8f0;
   background: white;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: clamp(10px, 2.5vw, 12px);
   color: white;
   transition: all 0.2s;
 }
@@ -329,50 +445,144 @@ body {
   transform: scale(0.9);
 }
 
-/* Month View */
-.month-view {
-  padding: 0 20px 100px;
+/* Stats View */
+.stats-view {
+  padding: 0 16px calc(env(safe-area-inset-bottom) + 100px);
 }
 
-.month-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.stats-header {
   margin-bottom: 20px;
 }
 
-.month-header button {
-  background: #f1f5f9;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  font-size: 18px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.month-header button:hover {
-  background: #e2e8f0;
-}
-
-.month-header h2 {
-  font-size: 18px;
+.stats-header h2 {
+  font-size: clamp(18px, 4.5vw, 20px);
   font-weight: 600;
   color: #374151;
 }
 
-.progress-chart {
+.chart-container {
   background: white;
   padding: 20px;
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+
+.chart-container h3 {
+  font-size: clamp(14px, 3.5vw, 16px);
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #374151;
+}
+
+.habits-stats h3 {
+  font-size: clamp(16px, 4vw, 18px);
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #374151;
+}
+
+.habit-stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.habit-stat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.habit-icon-small {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.habit-stat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.habit-stat-info h4 {
+  font-size: clamp(14px, 3.5vw, 16px);
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stat-numbers {
+  display: flex;
+  gap: 12px;
+  font-size: clamp(11px, 2.8vw, 12px);
+}
+
+.completed-stat {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.missed-stat {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.percentage-stat {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.habit-stat-bar {
+  margin-bottom: 12px;
+}
+
+.stat-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.habit-achievements {
+  display: flex;
+  gap: 16px;
+}
+
+.achievement {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: clamp(11px, 2.8vw, 12px);
+  color: #6b7280;
+}
+
+.achievement-icon {
+  font-size: 14px;
 }
 
 /* Add Habit FAB */
 .add-habit-fab {
   position: fixed;
-  bottom: 20px;
+  bottom: max(env(safe-area-inset-bottom), 20px);
   right: 20px;
   width: 56px;
   height: 56px;
@@ -415,7 +625,7 @@ body {
   border-radius: 20px;
   padding: 24px;
   width: 100%;
-  max-width: 320px;
+  max-width: min(90vw, 320px);
   animation: modalSlideUp 0.3s ease-out;
 }
 
@@ -431,7 +641,7 @@ body {
 }
 
 .modal-content h3 {
-  font-size: 20px;
+  font-size: clamp(18px, 4.5vw, 20px);
   font-weight: 600;
   margin-bottom: 20px;
   text-align: center;
@@ -440,7 +650,7 @@ body {
 
 .emoji-picker {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
   gap: 8px;
   margin-bottom: 20px;
 }
@@ -450,9 +660,13 @@ body {
   border: 2px solid transparent;
   padding: 12px;
   border-radius: 12px;
-  font-size: 20px;
+  font-size: clamp(16px, 4vw, 18px);
   cursor: pointer;
   transition: all 0.2s;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .emoji-btn.selected {
@@ -469,7 +683,7 @@ body {
   padding: 16px;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: clamp(14px, 3.5vw, 16px);
   margin-bottom: 20px;
   transition: all 0.2s;
 }
@@ -489,7 +703,7 @@ body {
   padding: 16px;
   border: none;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: clamp(14px, 3.5vw, 16px);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -517,100 +731,83 @@ body {
   transform: translateY(0);
 }
 
-/* Responsive Design */
-@media (max-width: 480px) {
-  .habit-app {
-    max-width: 100%;
-  }
-  
+/* Ultra-responsive breakpoints */
+@media (max-width: 375px) {
   .app-header {
-    padding: 15px 15px 10px;
-  }
-  
-  .header-content h1 {
-    font-size: 20px;
-  }
-  
-  .stats-card {
-    gap: 10px;
-    padding: 12px;
-  }
-  
-  .stat-number {
-    font-size: 18px;
+    padding: max(env(safe-area-inset-top), 16px) 16px 16px;
   }
   
   .view-toggle {
-    margin: 15px;
+    margin: 12px;
   }
   
-  .today-view, .week-view, .month-view {
-    padding: 0 15px 100px;
+  .today-view, .week-view, .stats-view {
+    padding: 0 12px calc(env(safe-area-inset-bottom) + 100px);
   }
   
-  .habit-card {
+  .habit-main {
     padding: 12px;
   }
   
-  .habit-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-    margin-right: 12px;
+  .habit-progress-bar {
+    padding: 0 12px 12px;
   }
   
-  .habit-info h3 {
+  .week-header h2 {
     font-size: 14px;
   }
   
-  .habit-streak {
-    font-size: 12px;
-  }
-  
-  .habit-check {
-    font-size: 20px;
-  }
-  
-  .week-header h2, .month-header h2 {
-    font-size: 14px;
-  }
-  
-  .habit-week-row {
-    padding: 12px;
-  }
-  
-  .habit-name {
-    font-size: 12px;
+  .habit-checks {
+    gap: 2px;
   }
   
   .check-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
   }
   
   .add-habit-fab {
     width: 48px;
     height: 48px;
     font-size: 20px;
-    bottom: 15px;
-    right: 15px;
+    bottom: max(env(safe-area-inset-bottom), 16px);
+    right: 16px;
+  }
+}
+
+@media (max-width: 320px) {
+  .stats-overview {
+    flex-direction: column;
+    gap: 6px;
   }
   
-  .modal-overlay {
-    padding: 15px;
+  .stat-pill {
+    justify-content: center;
   }
   
-  .modal-content {
-    padding: 20px;
+  .habit-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .habit-achievements {
+    flex-direction: column;
+    gap: 8px;
   }
   
   .emoji-picker {
     grid-template-columns: repeat(4, 1fr);
   }
+}
+
+/* Landscape orientation adjustments */
+@media (orientation: landscape) and (max-height: 500px) {
+  .app-header {
+    position: relative;
+  }
   
-  .emoji-btn {
-    padding: 10px;
-    font-size: 18px;
+  .today-view, .week-view, .stats-view {
+    padding-bottom: 80px;
   }
 }
