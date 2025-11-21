@@ -588,11 +588,12 @@ body {
 
 .habit-week-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   padding: 16px;
   border-bottom: 1px solid #f1f5f9;
   gap: 16px;
+  min-height: 80px;
 }
 
 .habit-week-row:last-child {
@@ -604,6 +605,7 @@ body {
   align-items: center;
   gap: 12px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .habit-icon-small {
@@ -623,13 +625,14 @@ body {
 }
 
 .habit-name {
-  font-size: clamp(14px, 3.5vw, 16px);
+  font-size: clamp(12px, 3vw, 14px);
   font-weight: 600;
   color: #374151;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-bottom: 6px;
+  line-height: 1.2;
 }
 
 .week-progress {
@@ -662,23 +665,26 @@ body {
 
 .week-checks {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: clamp(2px, 1vw, 6px);
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .day-check {
-  width: clamp(28px, 7vw, 32px);
-  height: clamp(28px, 7vw, 32px);
+  width: clamp(24px, 6vw, 28px);
+  height: clamp(24px, 6vw, 28px);
   border: 2px solid #e2e8f0;
   background: white;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: clamp(10px, 2.5vw, 12px);
   color: white;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .day-check.completed {
@@ -1141,6 +1147,55 @@ body {
   opacity: 1;
 }
 
+/* Week View Mobile Fixes */
+@media (max-width: 428px) {
+  .habit-week-row {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: 12px;
+    padding: 12px;
+    min-height: 70px;
+  }
+  
+  .habit-info-column {
+    gap: 8px;
+  }
+  
+  .habit-icon-small {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+  
+  .habit-name {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  .week-progress {
+    gap: 6px;
+  }
+  
+  .mini-progress-bar {
+    height: 3px;
+  }
+  
+  .progress-percentage {
+    font-size: 10px;
+    min-width: 24px;
+  }
+  
+  .week-checks {
+    gap: 2px;
+  }
+  
+  .day-check {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+    border-width: 1px;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 375px) {
   .app-header {
@@ -1168,14 +1223,37 @@ body {
     padding: 12px;
   }
   
+  .habit-week-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 8px;
+    padding: 10px;
+    min-height: 60px;
+  }
+  
+  .habit-icon-small {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+  
+  .habit-name {
+    font-size: 11px;
+  }
+  
   .week-checks {
-    gap: 4px;
+    gap: 1px;
   }
   
   .day-check {
-    width: 24px;
-    height: 24px;
-    font-size: 12px;
+    width: 20px;
+    height: 20px;
+    font-size: 9px;
+    border-width: 1px;
+  }
+  
+  .progress-percentage {
+    font-size: 9px;
+    min-width: 20px;
   }
   
   .fab-container {
@@ -1210,6 +1288,27 @@ body {
   
   .priority-options {
     grid-template-columns: 1fr;
+  }
+  
+  .habit-week-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    gap: 6px;
+    padding: 8px;
+    min-height: 56px;
+  }
+  
+  .habit-details {
+    min-width: 0;
+  }
+  
+  .week-progress {
+    gap: 4px;
+  }
+  
+  .day-check {
+    width: 18px;
+    height: 18px;
+    font-size: 8px;
   }
 }
 
