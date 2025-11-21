@@ -263,7 +263,7 @@ body {
 .section-header h2 {
   font-size: clamp(18px, 4.5vw, 22px);
   font-weight: 600;
-  color: #1a202c;
+  color: #ffffff;
   letter-spacing: -0.2px;
 }
 
@@ -565,7 +565,7 @@ body {
 .week-navigation h2 {
   font-size: clamp(15px, 3.8vw, 17px);
   font-weight: 600;
-  color: #374151;
+  color: #ffffff;
 }
 
 .week-container {
@@ -733,7 +733,7 @@ body {
   font-size: clamp(15px, 3.8vw, 17px);
   font-weight: 600;
   margin-bottom: 16px;
-  color: #374151;
+  color: #ffffff;
 }
 
 .habits-stats-grid {
