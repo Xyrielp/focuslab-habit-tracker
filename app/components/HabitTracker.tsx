@@ -42,6 +42,8 @@ export default function HabitTracker() {
   const [newTodoText, setNewTodoText] = useState('')
   const [selectedEmoji, setSelectedEmoji] = useState('🎯')
   const [selectedPriority, setSelectedPriority] = useState<'low' | 'medium' | 'high'>('medium')
+  const [notificationTime, setNotificationTime] = useLocalStorage('focuslab-notification-time', '09:00')
+  const [notificationsEnabled, setNotificationsEnabled] = useLocalStorage('focuslab-notifications', false)
   
   const emojis = ['🎯', '💪', '📚', '🏃', '💧', '🧘', '🎨', '💼', '🌱', '⚡', '🔥', '✨']
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
@@ -241,6 +243,46 @@ export default function HabitTracker() {
     }
   }
 
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission()
+      if (permission === 'granted') {
+        setNotificationsEnabled(true)
+        scheduleNotification()
+      }
+    }
+  }
+
+  const scheduleNotification = () => {
+    if (notificationsEnabled) {
+      const [hours, minutes] = notificationTime.split(':').map(Number)
+      const now = new Date()
+      const scheduledTime = new Date()
+      scheduledTime.setHours(hours, minutes, 0, 0)
+      
+      if (scheduledTime <= now) {
+        scheduledTime.setDate(scheduledTime.getDate() + 1)
+      }
+      
+      const timeUntilNotification = scheduledTime.getTime() - now.getTime()
+      
+      setTimeout(() => {
+        if (Notification.permission === 'granted') {
+          new Notification('🎯 FocusLab Reminder', {
+            body: 'Time to check your daily habits!'
+          })
+        }
+        scheduleNotification()
+      }, timeUntilNotification)
+    }
+  }
+
+  useEffect(() => {
+    if (notificationsEnabled) {
+      scheduleNotification()
+    }
+  }, [notificationTime, notificationsEnabled])
+
   return (
     <div className="habit-app">
       <PWAInstaller />
@@ -332,6 +374,22 @@ export default function HabitTracker() {
           </div>
         </div>
       </div>
+
+      {/* Notification Banner */}
+      {notificationsEnabled === false && (
+        <div className="notification-banner">
+          <div className="notification-content">
+            <span className="notification-icon">🔔</span>
+            <div className="notification-text">
+              <div className="notification-title">Enable Reminders</div>
+              <div className="notification-subtitle">Get daily habit reminders</div>
+            </div>
+            <button className="notification-btn" onClick={requestNotificationPermission}>
+              Enable
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Enhanced Navigation */}
       <div className="nav-tabs">
@@ -438,7 +496,7 @@ export default function HabitTracker() {
                     </div>
                     
                     <button 
-                      className="delete-btn"
+                      className="delete-btn-separated"
                       onClick={(e) => {
                         e.stopPropagation()
                         deleteHabit(index)
