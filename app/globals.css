@@ -719,6 +719,24 @@ body {
   transform: scale(0.95);
 }
 
+.day-check.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f8fafc;
+  border-color: #e2e8f0 !important;
+}
+
+.day-check.disabled:hover {
+  border-color: #e2e8f0 !important;
+  transform: none;
+}
+
+.day-check.disabled.completed {
+  background: #d1d5db;
+  border-color: #d1d5db !important;
+  opacity: 0.6;
+}
+
 /* Enhanced Stats View */
 .chart-card {
   background: white;

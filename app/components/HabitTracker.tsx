@@ -569,13 +569,15 @@ export default function HabitTracker() {
                     {weekDays.map(date => {
                       const dateStr = formatDate(date)
                       const isCompleted = habitData[habitIndex]?.[dateStr] || false
+                      const isPastDate = date < new Date(new Date().setHours(0, 0, 0, 0))
                       
                       return (
                         <button
                           key={date.toISOString()}
-                          className={`day-check ${isCompleted ? 'completed' : ''}`}
-                          onClick={() => toggleHabit(habitIndex, date)}
+                          className={`day-check ${isCompleted ? 'completed' : ''} ${isPastDate ? 'disabled' : ''}`}
+                          onClick={() => !isPastDate && toggleHabit(habitIndex, date)}
                           style={{ borderColor: habit.color }}
+                          disabled={isPastDate}
                         >
                           {isCompleted && <span className="check-mark">✓</span>}
                         </button>
