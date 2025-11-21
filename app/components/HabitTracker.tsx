@@ -288,7 +288,7 @@ export default function HabitTracker() {
       <PWAInstaller />
       
       {/* Onboarding for new users */}
-      {habits.length === 0 && todos.length === 0 && (
+      {habits.length === 0 && todos.length === 0 && !showAddHabit && (
         <div className="onboarding-overlay">
           <div className="onboarding-content">
             <div className="onboarding-icon">🎯</div>
