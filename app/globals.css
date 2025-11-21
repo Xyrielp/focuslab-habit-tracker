@@ -12,6 +12,12 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .habit-app {
@@ -19,8 +25,13 @@ body {
   margin: 0 auto;
   background: white;
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
   overflow-x: hidden;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Header with Progress */
@@ -686,6 +697,10 @@ body {
   font-size: clamp(14px, 3.5vw, 16px);
   margin-bottom: 20px;
   transition: all 0.2s;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 .habit-name-input:focus {
@@ -729,6 +744,49 @@ body {
 
 .add-btn:active {
   transform: translateY(0);
+}
+
+/* Enhanced Progress Indicators */
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.progress-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  transition: all 0.2s;
+}
+
+.progress-dot.completed {
+  background: #10b981;
+  transform: scale(1.2);
+}
+
+.progress-summary {
+  font-size: 10px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Improved Touch Targets */
+.habit-card, .check-btn, .toggle-btn, .emoji-btn {
+  -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+  tap-highlight-color: rgba(0,0,0,0.1);
+}
+
+.habit-card:active {
+  transform: scale(0.98);
+  transition: transform 0.1s;
+}
+
+.check-btn:active {
+  transform: scale(0.9);
+  transition: transform 0.1s;
 }
 
 /* Ultra-responsive breakpoints */
@@ -801,6 +859,71 @@ body {
   }
 }
 
+/* Prevent text selection on interactive elements */
+.habit-card, .check-btn, .toggle-btn, .view-btn, .nav-btn, .stat-pill, .emoji-btn, .add-habit-fab {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Allow text selection only for inputs and content text */
+input, textarea, .habit-name, .progress-stats, .stat-numbers {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Enhanced visual feedback */
+.habit-card.completed {
+  animation: completePulse 0.3s ease-out;
+}
+
+@keyframes completePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* Improved progress visualization */
+.progress-bar-fill {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Safe area handling for all devices */
+@supports (padding: max(0px)) {
+  .app-header {
+    padding-top: max(env(safe-area-inset-top), 20px);
+  }
+  
+  .add-habit-fab {
+    bottom: max(env(safe-area-inset-bottom), 20px);
+  }
+  
+  .today-view, .week-view, .stats-view {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 100px);
+  }
+}
+
 /* PWA Install Banner */
 .pwa-install-banner {
   position: fixed;
@@ -809,9 +932,13 @@ body {
   right: 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 16px;
+  padding: max(env(safe-area-inset-bottom), 16px) 16px 16px;
   z-index: 1001;
   animation: slideUp 0.3s ease-out;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 @keyframes slideUp {
@@ -889,14 +1016,55 @@ body {
 @media (orientation: landscape) and (max-height: 500px) {
   .app-header {
     position: relative;
+    padding: 10px 16px;
+  }
+  
+  .header-content {
+    margin-bottom: 8px;
+  }
+  
+  .stats-overview {
+    display: none;
   }
   
   .today-view, .week-view, .stats-view {
-    padding-bottom: 80px;
+    padding-bottom: 60px;
   }
   
   .pwa-install-banner {
     position: relative;
     margin-bottom: 0;
+  }
+  
+  .habit-card {
+    padding: 12px;
+  }
+  
+  .habit-progress-bar {
+    padding: 0 12px 8px;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .progress-circle svg {
+    shape-rendering: geometricPrecision;
+  }
+  
+  .progress-bar-fill {
+    will-change: width;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .progress-bar-fill::after {
+    animation: none;
   }
 }

@@ -52,7 +52,11 @@ export default function HabitTracker() {
     let completed = 0
     let total = 0
     
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    // Only count days since habit was created
+    const habitCreated = new Date(habits[habitIndex]?.createdAt || endDate)
+    const actualStartDate = startDate > habitCreated ? startDate : habitCreated
+    
+    for (let d = new Date(actualStartDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = formatDate(d)
       total++
       if (habitData[habitIndex]?.[dateStr]) {
@@ -98,14 +102,25 @@ export default function HabitTracker() {
     let streak = 0
     let date = new Date()
     
+    // Check from today backwards
     while (true) {
       const dateStr = formatDate(date)
       if (habitData[habitIndex]?.[dateStr]) {
         streak++
-        date.setDate(date.getDate() - 1)
       } else {
-        break
+        // If today is not completed, streak is 0
+        if (streak === 0 && formatDate(date) === formatDate(new Date())) {
+          break
+        }
+        // If we hit a gap after starting the streak, stop
+        if (streak > 0) {
+          break
+        }
       }
+      date.setDate(date.getDate() - 1)
+      
+      // Prevent infinite loop - only check last 365 days
+      if (streak > 365) break
     }
     return streak
   }
@@ -137,25 +152,32 @@ export default function HabitTracker() {
 
   const toggleHabit = (habitIndex: number, date: Date) => {
     const dateStr = formatDate(date)
+    const wasCompleted = habitData[habitIndex]?.[dateStr] || false
+    
+    // Update habit data
     setHabitData(prev => ({
       ...prev,
       [habitIndex]: {
         ...prev[habitIndex],
-        [dateStr]: !prev[habitIndex]?.[dateStr]
+        [dateStr]: !wasCompleted
       }
     }))
     
+    // Update streaks immediately
     setTimeout(() => {
       const updatedHabits = habits.map((habit, index) => {
-        const currentStreak = calculateStreak(index)
-        return {
-          ...habit,
-          streak: currentStreak,
-          bestStreak: Math.max(habit.bestStreak || 0, currentStreak)
+        if (index === habitIndex) {
+          const currentStreak = calculateStreak(index)
+          return {
+            ...habit,
+            streak: currentStreak,
+            bestStreak: Math.max(habit.bestStreak || 0, currentStreak)
+          }
         }
+        return habit
       })
       setHabits(updatedHabits)
-    }, 100)
+    }, 50)
   }
 
   const todayStats = getTodayStats()
