@@ -3,7 +3,6 @@ import './globals.css'
 export const metadata = {
   title: 'FocusLab - Habit Tracker',
   description: 'Track your daily habits with calendar view',
-  viewport: 'width=device-width, initial-scale=1',
 }
 
 export default function RootLayout({
@@ -13,6 +12,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+      </head>
       <body>{children}</body>
     </html>
   )
