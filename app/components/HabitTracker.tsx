@@ -42,7 +42,7 @@ export default function HabitTracker() {
   const [newTodoText, setNewTodoText] = useState('')
   const [selectedEmoji, setSelectedEmoji] = useState('🎯')
   const [selectedPriority, setSelectedPriority] = useState<'low' | 'medium' | 'high'>('medium')
-  const [notificationTime, setNotificationTime] = useLocalStorage('focuslab-notification-time', '09:00')
+  const [notificationTime, setNotificationTime] = useLocalStorage('focuslab-notification-time', '01:00')
   const [notificationsEnabled, setNotificationsEnabled] = useLocalStorage('focuslab-notifications', false)
   
   const emojis = ['🎯', '💪', '📚', '🏃', '💧', '🧘', '🎨', '💼', '🌱', '⚡', '🔥', '✨']
