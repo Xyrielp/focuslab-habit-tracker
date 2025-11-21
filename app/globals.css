@@ -18,6 +18,12 @@ body {
   user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
+  /* iOS Safari specific fixes */
+  -webkit-text-size-adjust: 100%;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
 }
 
 .habit-app {
@@ -26,9 +32,13 @@ body {
   background: #ffffff;
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   position: relative;
   overflow-x: hidden;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.03);
+  /* iOS Safari viewport fix */
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Optimized Header - Reduced Visual Weight */
@@ -39,6 +49,11 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  /* iOS Safari fixes */
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header-content {
@@ -2115,6 +2130,177 @@ body {
   .onboarding-content {
     width: 560px;
     padding: 64px 56px;
+  }
+}
+
+/* iOS Device Specific Optimizations */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific styles */
+  .habit-app {
+    min-height: -webkit-fill-available;
+  }
+  
+  .app-header {
+    padding-top: max(env(safe-area-inset-top, 20px), 20px);
+  }
+  
+  .content-view {
+    padding-bottom: max(env(safe-area-inset-bottom, 90px), 90px);
+  }
+  
+  .fab-container {
+    bottom: max(env(safe-area-inset-bottom, 20px), 20px);
+  }
+  
+  .pwa-install-banner {
+    padding-bottom: max(env(safe-area-inset-bottom, 14px), 14px);
+  }
+  
+  /* Fix iOS Safari zoom on input focus */
+  .form-input {
+    font-size: max(16px, 1em);
+  }
+  
+  /* iOS Safari button fixes */
+  button, .btn {
+    -webkit-appearance: none;
+    border-radius: 10px;
+  }
+  
+  /* iOS Safari scroll fixes */
+  .modal-overlay {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* iPhone SE and smaller devices */
+@media only screen and (max-width: 375px) and (-webkit-min-device-pixel-ratio: 2) {
+  .header-left h1 {
+    font-size: 20px;
+  }
+  
+  .progress-ring {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .stats-grid {
+    gap: 6px;
+  }
+  
+  .stat-card {
+    padding: 8px;
+  }
+  
+  .habit-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .check-circle {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* iPhone 12/13/14 and similar */
+@media only screen and (max-width: 428px) and (-webkit-min-device-pixel-ratio: 3) {
+  .app-header {
+    padding-top: max(env(safe-area-inset-top, 44px), 24px);
+  }
+  
+  .nav-tab {
+    padding: 12px 6px;
+  }
+  
+  .nav-icon {
+    font-size: 16px;
+  }
+  
+  .nav-label {
+    font-size: 9px;
+  }
+}
+
+/* iPhone Pro Max and larger phones */
+@media only screen and (min-width: 429px) and (max-width: 480px) and (-webkit-min-device-pixel-ratio: 3) {
+  .header-left h1 {
+    font-size: 26px;
+  }
+  
+  .progress-ring {
+    width: 52px;
+    height: 52px;
+  }
+  
+  .habit-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+  }
+  
+  .check-circle {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* iPad Mini and similar tablets */
+@media only screen and (min-width: 768px) and (max-width: 834px) and (-webkit-min-device-pixel-ratio: 2) {
+  .habits-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .todos-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  
+  .week-checks {
+    gap: 8px;
+  }
+  
+  .day-check {
+    height: 40px;
+  }
+}
+
+/* iPad Air/Pro and larger tablets */
+@media only screen and (min-width: 1024px) and (max-width: 1366px) and (-webkit-min-device-pixel-ratio: 2) {
+  .habits-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  
+  .todos-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  
+  .habits-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+/* Safari-specific fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  /* Safari button appearance fixes */
+  button, input[type="button"], input[type="submit"] {
+    -webkit-appearance: none;
+    -webkit-border-radius: 0;
+  }
+  
+  /* Safari input zoom prevention */
+  input[type="text"], input[type="email"], textarea {
+    font-size: 16px;
+  }
+  
+  /* Safari scroll momentum */
+  .content-view, .modal-overlay {
+    -webkit-overflow-scrolling: touch;
   }
 }
 
