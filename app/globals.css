@@ -753,7 +753,7 @@ body {
 .habit-name {
   font-size: clamp(13px, 3.2vw, 15px);
   font-weight: 600;
-  color: #1f2937;
+  color: #ffffff;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
