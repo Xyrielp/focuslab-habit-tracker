@@ -5,9 +5,19 @@ import { useEffect } from 'react'
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .then(() => console.log('SW registered'))
-        .catch(() => console.log('SW registration failed'))
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('SW registered:', registration)
+            // Force update on first visit
+            if (registration.waiting) {
+              registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+            }
+          })
+          .catch((error) => {
+            console.log('SW registration failed:', error)
+          })
+      })
     }
   }, [])
 

@@ -1,17 +1,16 @@
-const CACHE_NAME = 'focuslab-v3'
+const CACHE_NAME = 'focuslab-v4'
 const urlsToCache = [
   '/',
   '/manifest.json',
-  '/favicon.ico',
-  '/_next/static/css/',
-  '/_next/static/js/',
-  '/offline.html'
+  '/favicon.ico'
 ]
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then(cache => {
+        return cache.addAll(urlsToCache)
+      })
       .then(() => self.skipWaiting())
   )
 })
@@ -34,33 +33,25 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return
   
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        if (response) {
-          return response
+        if (response && response.status === 200) {
+          const responseToCache = response.clone()
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              cache.put(event.request, responseToCache)
+            })
         }
-        return fetch(event.request)
+        return response
+      })
+      .catch(() => {
+        return caches.match(event.request)
           .then(response => {
-            if (!response || response.status !== 200) {
+            if (response) {
               return response
             }
-            const responseToCache = response.clone()
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                if (event.request.url.includes('_next/static') || 
-                    event.request.url.includes('.js') || 
-                    event.request.url.includes('.css') ||
-                    event.request.destination === 'document') {
-                  cache.put(event.request, responseToCache)
-                }
-              })
-            return response
-          })
-          .catch(() => {
             if (event.request.destination === 'document') {
-              return caches.match('/') || new Response('App works offline!', {
-                headers: { 'Content-Type': 'text/html' }
-              })
+              return caches.match('/')
             }
             return new Response('Offline', { status: 503 })
           })
