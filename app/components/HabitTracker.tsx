@@ -56,7 +56,9 @@ export default function HabitTracker() {
   const [newEmoji, setNewEmoji] = useState('')
   
   const defaultEmojis = ['🎯', '💪', '📚', '🏃', '💧', '🧘', '🎨', '💼', '🌱', '⚡', '🔥', '✨']
-  const allEmojis = [...defaultEmojis, ...customEmojis]
+  const hiddenEmojis = JSON.parse(localStorage.getItem('focuslab-hidden-emojis') || '[]')
+  const visibleDefaultEmojis = defaultEmojis.filter(emoji => !hiddenEmojis.includes(emoji))
+  const allEmojis = [...visibleDefaultEmojis, ...customEmojis]
   const emojis = allEmojis.slice(0, 15) // 3 rows × 5 columns = 15 max
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
@@ -280,11 +282,16 @@ export default function HabitTracker() {
 
   const removeEmoji = (emoji: string) => {
     if (defaultEmojis.includes(emoji)) {
-      return
+      const hiddenEmojis = JSON.parse(localStorage.getItem('focuslab-hidden-emojis') || '[]')
+      const updatedHidden = [...hiddenEmojis, emoji]
+      localStorage.setItem('focuslab-hidden-emojis', JSON.stringify(updatedHidden))
+      setCustomEmojis([...customEmojis])
+    } else {
+      setCustomEmojis(customEmojis.filter(e => e !== emoji))
     }
-    setCustomEmojis(customEmojis.filter(e => e !== emoji))
     if (selectedEmoji === emoji) {
-      setSelectedEmoji(emojis[0])
+      const remainingEmojis = emojis.filter(e => e !== emoji)
+      setSelectedEmoji(remainingEmojis[0] || '🎯')
     }
   }
 
@@ -915,15 +922,14 @@ export default function HabitTracker() {
                       onClick={() => setSelectedEmoji(emoji)}
                       onContextMenu={(e) => {
                         e.preventDefault()
-                        if (!defaultEmojis.includes(emoji)) {
-                          removeEmoji(emoji)
-                        }
+                        removeEmoji(emoji)
                       }}
                     >
                       {emoji}
-                      {!defaultEmojis.includes(emoji) && (
-                        <span className="emoji-remove">×</span>
-                      )}
+                      <span className="emoji-remove" onClick={(e) => {
+                        e.stopPropagation()
+                        removeEmoji(emoji)
+                      }}>×</span>
                     </button>
                   ))}
                   {emojis.length < 15 && (
@@ -982,15 +988,14 @@ export default function HabitTracker() {
                       onClick={() => setSelectedEmoji(emoji)}
                       onContextMenu={(e) => {
                         e.preventDefault()
-                        if (!defaultEmojis.includes(emoji)) {
-                          removeEmoji(emoji)
-                        }
+                        removeEmoji(emoji)
                       }}
                     >
                       {emoji}
-                      {!defaultEmojis.includes(emoji) && (
-                        <span className="emoji-remove">×</span>
-                      )}
+                      <span className="emoji-remove" onClick={(e) => {
+                        e.stopPropagation()
+                        removeEmoji(emoji)
+                      }}>×</span>
                     </button>
                   ))}
                   {emojis.length < 15 && (

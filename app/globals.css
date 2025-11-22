@@ -1151,10 +1151,17 @@ body {
   justify-content: center;
   opacity: 0;
   transition: opacity 0.2s;
+  cursor: pointer;
+  z-index: 10;
 }
 
 .emoji-option:hover .emoji-remove {
   opacity: 1;
+}
+
+.emoji-remove:hover {
+  background: #dc2626;
+  transform: scale(1.1);
 }
 
 .form-input {
