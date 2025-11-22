@@ -278,7 +278,7 @@ body {
 .section-header h2 {
   font-size: clamp(18px, 4.5vw, 22px);
   font-weight: 600;
-  color: #ffffff;
+  color: #1f2937;
   letter-spacing: -0.2px;
 }
 
@@ -676,7 +676,7 @@ body {
 .week-navigation h2 {
   font-size: clamp(15px, 3.8vw, 17px);
   font-weight: 600;
-  color: #ffffff;
+  color: #1f2937;
 }
 
 .week-container {
@@ -862,7 +862,7 @@ body {
   font-size: clamp(15px, 3.8vw, 17px);
   font-weight: 600;
   margin-bottom: 16px;
-  color: #ffffff;
+  color: #1f2937;
 }
 
 .habits-stats-grid {
@@ -2412,6 +2412,18 @@ body {
   }
   
   .habit-name {
+    color: #f1f5f9;
+  }
+  
+  .section-header h2 {
+    color: #f1f5f9;
+  }
+  
+  .chart-card h3 {
+    color: #f1f5f9;
+  }
+  
+  .week-navigation h2 {
     color: #f1f5f9;
   }
 }
