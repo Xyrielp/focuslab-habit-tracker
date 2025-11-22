@@ -1124,6 +1124,39 @@ body {
   transform: scale(1.02);
 }
 
+.emoji-option.add-emoji {
+  background: #f0f4ff;
+  border-color: #6366f1;
+  color: #6366f1;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.emoji-option.add-emoji:hover {
+  background: #e0e7ff;
+}
+
+.emoji-remove {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.emoji-option:hover .emoji-remove {
+  opacity: 1;
+}
+
 .form-input {
   width: 100%;
   padding: 14px;

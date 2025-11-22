@@ -51,8 +51,13 @@ export default function HabitTracker() {
   const [editingHabitIndex, setEditingHabitIndex] = useState<number | null>(null)
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null)
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null)
+  const [customEmojis, setCustomEmojis] = useLocalStorage<string[]>('focuslab-custom-emojis', [])
+  const [showAddEmoji, setShowAddEmoji] = useState(false)
+  const [newEmoji, setNewEmoji] = useState('')
   
-  const emojis = ['🎯', '💪', '📚', '🏃', '💧', '🧘', '🎨', '💼', '🌱', '⚡', '🔥', '✨']
+  const defaultEmojis = ['🎯', '💪', '📚', '🏃', '💧', '🧘', '🎨', '💼', '🌱', '⚡', '🔥', '✨']
+  const allEmojis = [...defaultEmojis, ...customEmojis]
+  const emojis = allEmojis.slice(0, 15) // 3 rows × 5 columns = 15 max
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
   const generateId = () => Math.random().toString(36).substr(2, 9)
@@ -259,6 +264,28 @@ export default function HabitTracker() {
       deleteTodo(editingTodoId)
     }
     setShowLongPressMenu(false)
+  }
+
+  const addCustomEmoji = () => {
+    if (!newEmoji.trim()) return
+    
+    const emoji = newEmoji.trim()
+    if (allEmojis.includes(emoji)) return
+    
+    const updatedCustomEmojis = [...customEmojis, emoji]
+    setCustomEmojis(updatedCustomEmojis)
+    setNewEmoji('')
+    setShowAddEmoji(false)
+  }
+
+  const removeEmoji = (emoji: string) => {
+    if (defaultEmojis.includes(emoji)) {
+      return
+    }
+    setCustomEmojis(customEmojis.filter(e => e !== emoji))
+    if (selectedEmoji === emoji) {
+      setSelectedEmoji(emojis[0])
+    }
   }
 
   const handleLongPressEnd = () => {
@@ -886,10 +913,27 @@ export default function HabitTracker() {
                       key={emoji}
                       className={`emoji-option ${selectedEmoji === emoji ? 'selected' : ''}`}
                       onClick={() => setSelectedEmoji(emoji)}
+                      onContextMenu={(e) => {
+                        e.preventDefault()
+                        if (!defaultEmojis.includes(emoji)) {
+                          removeEmoji(emoji)
+                        }
+                      }}
                     >
                       {emoji}
+                      {!defaultEmojis.includes(emoji) && (
+                        <span className="emoji-remove">×</span>
+                      )}
                     </button>
                   ))}
+                  {emojis.length < 15 && (
+                    <button
+                      className="emoji-option add-emoji"
+                      onClick={() => setShowAddEmoji(true)}
+                    >
+                      +
+                    </button>
+                  )}
                 </div>
               </div>
               
@@ -936,10 +980,27 @@ export default function HabitTracker() {
                       key={emoji}
                       className={`emoji-option ${selectedEmoji === emoji ? 'selected' : ''}`}
                       onClick={() => setSelectedEmoji(emoji)}
+                      onContextMenu={(e) => {
+                        e.preventDefault()
+                        if (!defaultEmojis.includes(emoji)) {
+                          removeEmoji(emoji)
+                        }
+                      }}
                     >
                       {emoji}
+                      {!defaultEmojis.includes(emoji) && (
+                        <span className="emoji-remove">×</span>
+                      )}
                     </button>
                   ))}
+                  {emojis.length < 15 && (
+                    <button
+                      className="emoji-option add-emoji"
+                      onClick={() => setShowAddEmoji(true)}
+                    >
+                      +
+                    </button>
+                  )}
                 </div>
               </div>
               
@@ -1035,6 +1096,45 @@ export default function HabitTracker() {
               </button>
               <button className="btn secondary" onClick={handleDelete} style={{ background: '#ef4444', color: 'white' }}>
                 🗑️ Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Custom Emoji Modal */}
+      {showAddEmoji && (
+        <div className="modal-overlay" onClick={() => setShowAddEmoji(false)}>
+          <div className="modal-content modern" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px' }}>
+            <div className="modal-header">
+              <h3>Add Custom Icon</h3>
+              <button className="modal-close" onClick={() => setShowAddEmoji(false)}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Enter Emoji or Icon</label>
+                <input
+                  type="text"
+                  placeholder="🚀 or any emoji"
+                  value={newEmoji}
+                  onChange={(e) => setNewEmoji(e.target.value)}
+                  className="form-input"
+                  autoFocus
+                  maxLength={2}
+                />
+                <p style={{ fontSize: '12px', color: '#64748b', marginTop: '8px' }}>
+                  {15 - emojis.length} slots remaining. Right-click custom icons to remove.
+                </p>
+              </div>
+            </div>
+            
+            <div className="modal-actions">
+              <button className="btn secondary" onClick={() => setShowAddEmoji(false)}>
+                Cancel
+              </button>
+              <button className="btn primary" onClick={addCustomEmoji}>
+                Add Icon
               </button>
             </div>
           </div>
