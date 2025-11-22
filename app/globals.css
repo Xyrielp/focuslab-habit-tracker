@@ -753,7 +753,7 @@ body {
 .habit-name {
   font-size: clamp(13px, 3.2vw, 15px);
   font-weight: 600;
-  color: #ffffff;
+  color: #1f2937;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2369,5 +2369,9 @@ body {
   
   .chart-insights {
     border-top-color: #475569;
+  }
+  
+  .habit-name {
+    color: #f1f5f9;
   }
 }
