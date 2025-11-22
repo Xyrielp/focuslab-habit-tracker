@@ -56,7 +56,7 @@ export default function HabitTracker() {
   const [newEmoji, setNewEmoji] = useState('')
   
   const defaultEmojis = ['🎯', '💪', '📚', '🏃', '💧', '🧘', '🎨', '💼', '🌱', '⚡', '🔥', '✨']
-  const hiddenEmojis = JSON.parse(localStorage.getItem('focuslab-hidden-emojis') || '[]')
+  const hiddenEmojis = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('focuslab-hidden-emojis') || '[]') : []
   const visibleDefaultEmojis = defaultEmojis.filter(emoji => !hiddenEmojis.includes(emoji))
   const allEmojis = [...visibleDefaultEmojis, ...customEmojis]
   const emojis = allEmojis.slice(0, 15) // 3 rows × 5 columns = 15 max
@@ -282,10 +282,12 @@ export default function HabitTracker() {
 
   const removeEmoji = (emoji: string) => {
     if (defaultEmojis.includes(emoji)) {
-      const hiddenEmojis = JSON.parse(localStorage.getItem('focuslab-hidden-emojis') || '[]')
-      const updatedHidden = [...hiddenEmojis, emoji]
-      localStorage.setItem('focuslab-hidden-emojis', JSON.stringify(updatedHidden))
-      setCustomEmojis([...customEmojis])
+      if (typeof window !== 'undefined') {
+        const hiddenEmojis = JSON.parse(localStorage.getItem('focuslab-hidden-emojis') || '[]')
+        const updatedHidden = [...hiddenEmojis, emoji]
+        localStorage.setItem('focuslab-hidden-emojis', JSON.stringify(updatedHidden))
+        setCustomEmojis([...customEmojis])
+      }
     } else {
       setCustomEmojis(customEmojis.filter(e => e !== emoji))
     }
