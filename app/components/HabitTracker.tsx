@@ -770,7 +770,11 @@ export default function HabitTracker() {
                     {weekDays.map(date => {
                       const dateStr = formatDate(date)
                       const isCompleted = habitData[habitIndex]?.[dateStr] || false
-                      const isPastDate = date < new Date(new Date().setHours(0, 0, 0, 0))
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+                      const checkDate = new Date(date)
+                      checkDate.setHours(0, 0, 0, 0)
+                      const isPastDate = checkDate < today
                       
                       return (
                         <button
