@@ -1,8 +1,11 @@
-const CACHE_NAME = 'focuslab-v2'
+const CACHE_NAME = 'focuslab-v3'
 const urlsToCache = [
   '/',
   '/manifest.json',
-  '/favicon.ico'
+  '/favicon.ico',
+  '/_next/static/css/',
+  '/_next/static/js/',
+  '/offline.html'
 ]
 
 self.addEventListener('install', event => {
@@ -38,20 +41,28 @@ self.addEventListener('fetch', event => {
         }
         return fetch(event.request)
           .then(response => {
-            if (!response || response.status !== 200 || response.type !== 'basic') {
+            if (!response || response.status !== 200) {
               return response
             }
             const responseToCache = response.clone()
             caches.open(CACHE_NAME)
               .then(cache => {
-                cache.put(event.request, responseToCache)
+                if (event.request.url.includes('_next/static') || 
+                    event.request.url.includes('.js') || 
+                    event.request.url.includes('.css') ||
+                    event.request.destination === 'document') {
+                  cache.put(event.request, responseToCache)
+                }
               })
             return response
           })
           .catch(() => {
             if (event.request.destination === 'document') {
-              return caches.match('/')
+              return caches.match('/') || new Response('App works offline!', {
+                headers: { 'Content-Type': 'text/html' }
+              })
             }
+            return new Response('Offline', { status: 503 })
           })
       })
   )

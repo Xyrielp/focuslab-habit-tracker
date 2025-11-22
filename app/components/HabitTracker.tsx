@@ -54,6 +54,7 @@ export default function HabitTracker() {
   const [customEmojis, setCustomEmojis] = useLocalStorage<string[]>('focuslab-custom-emojis', [])
   const [showAddEmoji, setShowAddEmoji] = useState(false)
   const [newEmoji, setNewEmoji] = useState('')
+  const [isOnline, setIsOnline] = useState(true)
   
   const defaultEmojis = ['🎯', '💪', '📚', '🏃', '💧', '🧘', '🎨', '💼', '🌱', '⚡', '🔥', '✨']
   const hiddenEmojis = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('focuslab-hidden-emojis') || '[]') : []
@@ -399,6 +400,17 @@ export default function HabitTracker() {
     if (notificationsEnabled) {
       scheduleNotification()
     }
+    
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+    
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
   }, [notificationTime, notificationsEnabled])
 
   return (
@@ -493,8 +505,21 @@ export default function HabitTracker() {
         </div>
       </div>
 
+      {/* Offline Banner */}
+      {!isOnline && (
+        <div className="notification-banner" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' }}>
+          <div className="notification-content">
+            <span className="notification-icon">📶</span>
+            <div className="notification-text">
+              <div className="notification-title">You're Offline</div>
+              <div className="notification-subtitle">App works without internet!</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Notification Banner */}
-      {notificationsEnabled === false && (
+      {notificationsEnabled === false && isOnline && (
         <div className="notification-banner">
           <div className="notification-content">
             <span className="notification-icon">🔔</span>
