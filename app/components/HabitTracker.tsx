@@ -44,6 +44,13 @@ export default function HabitTracker() {
   const [selectedPriority, setSelectedPriority] = useState<'low' | 'medium' | 'high'>('medium')
   const [notificationTime, setNotificationTime] = useLocalStorage('focuslab-notification-time', '01:00')
   const [notificationsEnabled, setNotificationsEnabled] = useLocalStorage('focuslab-notifications', false)
+  const [showEditHabit, setShowEditHabit] = useState(false)
+  const [showEditTodo, setShowEditTodo] = useState(false)
+  const [showLongPressMenu, setShowLongPressMenu] = useState(false)
+  const [longPressType, setLongPressType] = useState<'habit' | 'todo'>('habit')
+  const [editingHabitIndex, setEditingHabitIndex] = useState<number | null>(null)
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null)
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null)
   
   const emojis = ['🎯', '💪', '📚', '🏃', '💧', '🧘', '🎨', '💼', '🌱', '⚡', '🔥', '✨']
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
@@ -184,6 +191,81 @@ export default function HabitTracker() {
 
   const deleteTodo = (todoId: string) => {
     setTodos(todos.filter(todo => todo.id !== todoId))
+  }
+
+  const editHabit = () => {
+    if (editingHabitIndex === null || !newHabitName.trim()) return
+    
+    const updatedHabits = habits.map((habit, index) => 
+      index === editingHabitIndex 
+        ? { ...habit, name: newHabitName.trim(), emoji: selectedEmoji }
+        : habit
+    )
+    
+    setHabits(updatedHabits)
+    setNewHabitName('')
+    setShowEditHabit(false)
+    setEditingHabitIndex(null)
+  }
+
+  const editTodo = () => {
+    if (!editingTodoId || !newTodoText.trim()) return
+    
+    const updatedTodos = todos.map(todo => 
+      todo.id === editingTodoId 
+        ? { ...todo, text: newTodoText.trim(), priority: selectedPriority }
+        : todo
+    )
+    
+    setTodos(updatedTodos)
+    setNewTodoText('')
+    setShowEditTodo(false)
+    setEditingTodoId(null)
+  }
+
+  const handleLongPressStart = (type: 'habit' | 'todo', id: number | string) => {
+    const timer = setTimeout(() => {
+      setLongPressType(type)
+      if (type === 'habit') {
+        setEditingHabitIndex(id as number)
+      } else {
+        setEditingTodoId(id as string)
+      }
+      setShowLongPressMenu(true)
+    }, 500)
+    setLongPressTimer(timer)
+  }
+
+  const handleEdit = () => {
+    if (longPressType === 'habit' && editingHabitIndex !== null) {
+      setNewHabitName(habits[editingHabitIndex].name)
+      setSelectedEmoji(habits[editingHabitIndex].emoji)
+      setShowEditHabit(true)
+    } else if (longPressType === 'todo' && editingTodoId) {
+      const todo = todos.find(t => t.id === editingTodoId)
+      if (todo) {
+        setNewTodoText(todo.text)
+        setSelectedPriority(todo.priority)
+        setShowEditTodo(true)
+      }
+    }
+    setShowLongPressMenu(false)
+  }
+
+  const handleDelete = () => {
+    if (longPressType === 'habit' && editingHabitIndex !== null) {
+      deleteHabit(editingHabitIndex)
+    } else if (longPressType === 'todo' && editingTodoId) {
+      deleteTodo(editingTodoId)
+    }
+    setShowLongPressMenu(false)
+  }
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer)
+      setLongPressTimer(null)
+    }
   }
 
   const deleteHabit = (index: number) => {
@@ -460,6 +542,11 @@ export default function HabitTracker() {
                         setTimeout(() => card?.classList.remove('success-pulse'), 600)
                       }
                     }}
+                    onMouseDown={() => handleLongPressStart('habit', index)}
+                    onMouseUp={handleLongPressEnd}
+                    onMouseLeave={handleLongPressEnd}
+                    onTouchStart={() => handleLongPressStart('habit', index)}
+                    onTouchEnd={handleLongPressEnd}
                     data-habit-id={habit.id}
                   >
                     <div className="card-header">
@@ -495,15 +582,7 @@ export default function HabitTracker() {
                       </div>
                     </div>
                     
-                    <button 
-                      className="delete-btn-separated"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        deleteHabit(index)
-                      }}
-                    >
-                      <span>×</span>
-                    </button>
+
                   </div>
                 )
               })}
@@ -538,14 +617,22 @@ export default function HabitTracker() {
                   className={`todo-card ${todo.completed ? 'completed' : ''}`}
                   data-todo-id={todo.id}
                 >
-                  <div className="todo-content" onClick={() => {
-                    toggleTodo(todo.id)
-                    if (!todo.completed) {
-                      const card = document.querySelector(`[data-todo-id="${todo.id}"]`)
-                      card?.classList.add('success-pulse')
-                      setTimeout(() => card?.classList.remove('success-pulse'), 600)
-                    }
-                  }}>
+                  <div 
+                    className="todo-content" 
+                    onClick={() => {
+                      toggleTodo(todo.id)
+                      if (!todo.completed) {
+                        const card = document.querySelector(`[data-todo-id="${todo.id}"]`)
+                        card?.classList.add('success-pulse')
+                        setTimeout(() => card?.classList.remove('success-pulse'), 600)
+                      }
+                    }}
+                    onMouseDown={() => handleLongPressStart('todo', todo.id)}
+                    onMouseUp={handleLongPressEnd}
+                    onMouseLeave={handleLongPressEnd}
+                    onTouchStart={() => handleLongPressStart('todo', todo.id)}
+                    onTouchEnd={handleLongPressEnd}
+                  >
                     <div className="todo-check">
                       <div className={`check-circle ${todo.completed ? 'checked' : ''}`}>
                         {todo.completed && <span className="check-mark">✓</span>}
@@ -563,15 +650,7 @@ export default function HabitTracker() {
                       </div>
                     </div>
                   </div>
-                  <button 
-                    className="delete-btn-separated"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      deleteTodo(todo.id)
-                    }}
-                  >
-                    <span>×</span>
-                  </button>
+
                 </div>
               ))}
             </div>
@@ -833,6 +912,129 @@ export default function HabitTracker() {
               </button>
               <button className="btn primary" onClick={addHabit}>
                 Create Habit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Habit Modal */}
+      {showEditHabit && (
+        <div className="modal-overlay" onClick={() => setShowEditHabit(false)}>
+          <div className="modal-content modern" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Edit Habit</h3>
+              <button className="modal-close" onClick={() => setShowEditHabit(false)}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Choose Icon</label>
+                <div className="emoji-grid">
+                  {emojis.map(emoji => (
+                    <button
+                      key={emoji}
+                      className={`emoji-option ${selectedEmoji === emoji ? 'selected' : ''}`}
+                      onClick={() => setSelectedEmoji(emoji)}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="form-group">
+                <label>Habit Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Drink 8 glasses of water"
+                  value={newHabitName}
+                  onChange={(e) => setNewHabitName(e.target.value)}
+                  className="form-input"
+                  autoFocus
+                />
+              </div>
+            </div>
+            
+            <div className="modal-actions">
+              <button className="btn secondary" onClick={() => setShowEditHabit(false)}>
+                Cancel
+              </button>
+              <button className="btn primary" onClick={editHabit}>
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Todo Modal */}
+      {showEditTodo && (
+        <div className="modal-overlay" onClick={() => setShowEditTodo(false)}>
+          <div className="modal-content modern" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Edit Task</h3>
+              <button className="modal-close" onClick={() => setShowEditTodo(false)}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Task Description</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Buy groceries for dinner"
+                  value={newTodoText}
+                  onChange={(e) => setNewTodoText(e.target.value)}
+                  className="form-input"
+                  autoFocus
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Priority Level</label>
+                <div className="priority-options">
+                  {(['low', 'medium', 'high'] as const).map(priority => (
+                    <button
+                      key={priority}
+                      className={`priority-option ${selectedPriority === priority ? 'selected' : ''}`}
+                      onClick={() => setSelectedPriority(priority)}
+                      style={{ borderColor: getPriorityColor(priority) }}
+                    >
+                      <span className="priority-icon">{getPriorityIcon(priority)}</span>
+                      <span className="priority-label">{priority}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="modal-actions">
+              <button className="btn secondary" onClick={() => setShowEditTodo(false)}>
+                Cancel
+              </button>
+              <button className="btn primary" onClick={editTodo}>
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Long Press Menu */}
+      {showLongPressMenu && (
+        <div className="modal-overlay" onClick={() => setShowLongPressMenu(false)}>
+          <div className="modal-content modern" onClick={e => e.stopPropagation()} style={{ maxWidth: '280px' }}>
+            <div className="modal-header">
+              <h3>Options</h3>
+              <button className="modal-close" onClick={() => setShowLongPressMenu(false)}>×</button>
+            </div>
+            
+            <div className="modal-actions" style={{ flexDirection: 'column', gap: '8px' }}>
+              <button className="btn primary" onClick={handleEdit}>
+                ✏️ Edit
+              </button>
+              <button className="btn secondary" onClick={handleDelete} style={{ background: '#ef4444', color: 'white' }}>
+                🗑️ Delete
               </button>
             </div>
           </div>
