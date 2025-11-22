@@ -586,7 +586,7 @@ export default function HabitTracker() {
             <button className="nav-arrow" onClick={() => setCurrentDate(new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000))}>
               ←
             </button>
-            <h2>Week of {weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</h2>
+            <h2>Week of {weekDays[0].toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</h2>
             <button className="nav-arrow" onClick={() => setCurrentDate(new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000))}>
               →
             </button>
@@ -596,7 +596,7 @@ export default function HabitTracker() {
             <div className="week-header">
               {weekDays.map(date => (
                 <div key={date.toISOString()} className="day-column">
-                  <div className="day-name">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                  <div className="day-name">{date.toLocaleDateString(undefined, { weekday: 'short' })}</div>
                   <div className="day-number">{date.getDate()}</div>
                 </div>
               ))}
