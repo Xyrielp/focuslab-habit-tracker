@@ -55,6 +55,8 @@ export default function HabitTracker() {
   const [showAddEmoji, setShowAddEmoji] = useState(false)
   const [newEmoji, setNewEmoji] = useState('')
   const [isOnline, setIsOnline] = useState(true)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false)
   
   const defaultEmojis = ['🎯', '💪', '📚', '🏃', '💧', '🧘', '🎨', '💼', '🌱', '⚡', '🔥', '✨']
   const hiddenEmojis = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('focuslab-hidden-emojis') || '[]') : []
@@ -407,9 +409,18 @@ export default function HabitTracker() {
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
     
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+      setShowInstallPrompt(true)
+    }
+    
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
     }
   }, [notificationTime, notificationsEnabled])
 
@@ -518,8 +529,31 @@ export default function HabitTracker() {
         </div>
       )}
 
+      {/* PWA Install Banner */}
+      {showInstallPrompt && (
+        <div className="notification-banner" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+          <div className="notification-content">
+            <span className="notification-icon">📱</span>
+            <div className="notification-text">
+              <div className="notification-title">Install FocusLab</div>
+              <div className="notification-subtitle">Add to home screen for quick access</div>
+            </div>
+            <button className="notification-btn" onClick={() => {
+              if (deferredPrompt) {
+                deferredPrompt.prompt()
+                deferredPrompt.userChoice.then(() => {
+                  setDeferredPrompt(null)
+                  setShowInstallPrompt(false)
+                })
+              }
+            }}>Install</button>
+            <button className="close-btn" onClick={() => setShowInstallPrompt(false)}>×</button>
+          </div>
+        </div>
+      )}
+
       {/* Notification Banner */}
-      {notificationsEnabled === false && isOnline && (
+      {notificationsEnabled === false && isOnline && !showInstallPrompt && (
         <div className="notification-banner">
           <div className="notification-content">
             <span className="notification-icon">🔔</span>
