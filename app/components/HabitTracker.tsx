@@ -403,6 +403,21 @@ export default function HabitTracker() {
       scheduleNotification()
     }
     
+    // Handle app shortcuts
+    const urlParams = new URLSearchParams(window.location.search)
+    const action = urlParams.get('action')
+    const view = urlParams.get('view')
+    
+    if (action === 'add-habit') {
+      setShowAddHabit(true)
+    } else if (action === 'add-task') {
+      setShowAddTodo(true)
+    } else if (view === 'stats') {
+      setViewMode('stats')
+    } else if (view === 'today') {
+      setViewMode('today')
+    }
+    
     const handleOnline = () => setIsOnline(true)
     const handleOffline = () => setIsOnline(false)
     
